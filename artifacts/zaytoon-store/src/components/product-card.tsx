@@ -1,9 +1,12 @@
 import { Link } from 'wouter';
 import type { Product } from '@workspace/api-client-react';
 import { ArrowUpRight } from 'lucide-react';
+import { FadeImage } from '@/lib/motion';
+import { resolveImageSource } from '@/lib/image-source';
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
   const image = product.images?.[0] || '/images/zaytoon-hero.jpg';
+  const secondImage = product.images && product.images.length > 1 ? product.images[1] : null;
 
   return (
     <article
@@ -13,13 +16,22 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
     >
       <Link href={`/products/${product.id}`} className="block" data-testid={`link-product-${product.id}`}>
         <div className="product-image relative aspect-[4/5]">
-          <img
+          <FadeImage
             src={image}
             alt={product.name}
             className="h-full w-full object-cover"
             loading={index > 2 ? 'lazy' : 'eager'}
             data-testid={`img-product-${product.id}`}
           />
+          {secondImage && (
+            <img
+              src={resolveImageSource(secondImage)}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+            />
+          )}
           {product.featured && (
             <span className="absolute left-3 top-3 border border-[#fcf9f5]/75 bg-[#fcf9f5]/85 px-2 py-1 text-[9px] tracking-[0.13em]">
               ATELIER PIECE

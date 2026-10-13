@@ -1,0 +1,72 @@
+Upgrade my existing Palestinian heritage fashion e-commerce website by adding sophisticated, smooth, premium animations throughout the entire website. Preserve my current Stitch design, brand identity, colors, layout, content, and all existing functionality. Do not rebuild or redesign the website.
+
+I want the animations to feel like a high-end fashion brand website, with subtle editorial motion, elegant transitions, and delightful interactive details.
+
+### 1. Homepage animations
+- **Hero entrance:** Animate the main heading, subtitle, buttons, and hero image into view with staggered fade-ins and subtle upward movement when the page loads.
+- **Scroll reveals:** Sections should smoothly fade in and move slightly upward as they enter the viewport.
+- **Parallax effect:** Add a very subtle parallax effect to the main hero image and selected large editorial images while scrolling.
+- **Image reveal:** Use elegant clipping or reveal animations as collection and editorial images enter the screen.
+- **Brand story:** Animate selected decorative elements, such as olive branches or subtle Palestinian embroidery-inspired patterns, gently into view.
+
+### 2. Product cards and shopping
+- **Image hover:** When hovering over a product card, smoothly zoom the product image slightly, without distorting it.
+- **Secondary image:** If a product has multiple images, reveal the next image on hover with a smooth crossfade.
+- **Card reveal:** Make product cards appear with a subtle staggered animation when the product grid loads.
+- **Add to Cart:** Animate the button when clicked, show a small confirmation message, and smoothly update the cart count.
+- **Wishlist:** If a wishlist already exists, animate the heart icon when a product is added or removed from favourites.
+- **Quick view:** If a quick-view feature exists, open it with a smooth fade and scale transition.
+
+### 3. Navigation and buttons
+- Add a smooth animated underline to navigation links on hover.
+- Add subtle color transitions and a slight movement effect to buttons on hover.
+- Give primary buttons a refined press animation when clicked.
+- Animate the mobile navigation menu opening and closing.
+- Make dropdown menus appear smoothly instead of suddenly.
+- Add a gentle transition when switching between light and dark mode, if both modes are already supported.
+
+### 4. Page transitions and scrolling
+- Add subtle fade transitions when navigating between pages, using the existing routing system.
+- Make anchor links scroll smoothly to their target sections.
+- Animate filter and sorting changes in the shop without disrupting the layout.
+- Add smooth transitions when opening and closing the shopping cart drawer or modal, if present.
+- Avoid forced scrolling or animations that interfere with normal browsing.
+
+### 5. Shopping cart and checkout
+- Animate products entering and leaving the cart.
+- Smoothly update the subtotal when quantities change.
+- Add a subtle success animation when an item is added to the cart.
+- Animate loading indicators and empty-cart illustrations where appropriate.
+- Keep all cart calculations and checkout functionality unchanged.
+
+### 6. Login, signup, and account pages
+- Add subtle entrance animations to form containers.
+- Animate input focus states and validation messages.
+- Show smooth success and error message transitions.
+- Keep all authentication and security functionality unchanged.
+
+### 7. Premium micro-interactions
+- Add gentle transitions to category filters, size selectors, quantity controls, and other interactive elements.
+- Use smooth image-loading transitions to reduce the appearance of sudden image pop-ins.
+- Add subtle animated decorative details inspired by Palestinian tatreez, olive branches, and geometric patterns, but keep these understated.
+- Use skeleton loading placeholders if the product catalogue takes time to load from the database.
+
+### 8. Animation style and performance
+- Use smooth easing curves and mostly short transitions of approximately 200–500 milliseconds.
+- Use slower animations only for large editorial reveals or hero elements.
+- Prefer CSS transitions and keyframes, Intersection Observer, or the animation library already installed in the project.
+- Do not install a large animation library unless it is genuinely necessary.
+- Animate primarily opacity and transform to maintain performance.
+- Avoid excessive bouncing, spinning, flashing, constant movement, or distracting animations.
+- Respect the user's reduced-motion accessibility preference using `prefers-reduced-motion`.
+- Ensure animations work on mobile, remain responsive, and do not interfere with clicking, scrolling, accessibility, or page loading.
+
+### Important requirements
+- First inspect my existing project and identify the components that should be animated.
+- Implement the animations directly in the existing code.
+- Do not remove, replace, or break existing sections, product data, MongoDB integration, authentication, cart functionality, or routing.
+- Do not use fake interactions or add decorative buttons that do nothing.
+- Test the animations on the homepage, shop, product details, cart, and account pages.
+- At the end, summarize which animations were implemented and which pages were updated.
+
+The final result should feel like a polished, premium fashion editorial website with elegant motion—not a generic template overloaded with animations.

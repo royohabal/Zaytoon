@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { EASE, FadeImage, ImageReveal } from '@/lib/motion';
 import { useParams, Link } from 'wouter';
 import { Check, ChevronDown, ChevronUp, Heart, Minus, Plus } from 'lucide-react';
 import { useGetProduct } from '@workspace/api-client-react';
@@ -13,6 +15,7 @@ export default function ProductDetailPage() {
   const [size, setSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const reduce = useReducedMotion();
   const product = query.data;
 
   if (query.isLoading) {
@@ -61,9 +64,9 @@ export default function ProductDetailPage() {
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)] lg:gap-16">
         <div className="grid grid-cols-2 gap-3 sm:gap-5">
           {images.slice(0, 4).map((image, index) => (
-            <div key={`${image}-${index}`} className={`product-image aspect-[4/5] ${index === 0 ? 'col-span-2' : ''}`}>
-              <img src={image} alt={`${product.name}, view ${index + 1}`} className="h-full w-full object-cover" data-testid={`img-detail-${index}`} />
-            </div>
+            <ImageReveal key={`${image}-${index}`} className={`product-image aspect-[4/5] ${index === 0 ? 'col-span-2' : ''}`}>
+              <FadeImage src={image} alt={`${product.name}, view ${index + 1}`} className="h-full w-full object-cover" data-testid={`img-detail-${index}`} />
+            </ImageReveal>
           ))}
         </div>
         <div className="lg:sticky lg:top-[130px] lg:self-start lg:py-4">
@@ -79,7 +82,7 @@ export default function ProductDetailPage() {
           <div className="mt-8">
             <div className="flex items-center justify-between">
               <label className="atelier-label" htmlFor="product-size">SELECT SIZE</label>
-              <button type="button" className="atelier-label text-[9px] text-[#66685f] underline underline-offset-4" data-testid="button-size-guide" onClick={() => document.getElementById('size-note')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
+              <button type="button" className="atelier-label text-[9px] text-[#66685f] underline underline-offset-4" data-testid="button-size-guide" onClick={() => document.getElementById('size-note')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' })}>
                 SIZE NOTES
               </button>
             </div>
@@ -106,7 +109,11 @@ export default function ProductDetailPage() {
               <button type="button" aria-label="Increase quantity" onClick={() => setQuantity((current) => Math.min(10, product.stockQuantity, current + 1))} disabled={quantity >= Math.min(10, product.stockQuantity)} className="flex h-10 w-10 items-center justify-center disabled:opacity-30" data-testid="button-quantity-increase"><Plus size={14} /></button>
             </div>
           </div>
-          {!size && available && <p className="mt-4 text-xs text-[#944931]" data-testid="text-size-required">Please select a size to continue.</p>}
+          <AnimatePresence initial={false}>
+            {!size && available && (
+              <motion.p key="size-required" className="mt-4 text-xs text-[#944931]" data-testid="text-size-required" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>Please select a size to continue.</motion.p>
+            )}
+          </AnimatePresence>
           {!available && <p className="mt-4 text-xs text-[#944931]" data-testid="text-out-of-stock">This piece is currently out of stock.</p>}
           <button
             type="button"
@@ -115,8 +122,17 @@ export default function ProductDetailPage() {
             className="mt-5 flex w-full items-center justify-center gap-3 bg-[#1c1c1a] px-7 py-4 atelier-label text-[#fcf9f5] transition-colors hover:bg-[#4a5844] disabled:cursor-not-allowed disabled:bg-[#b8b9b2]"
             data-testid="button-add-to-bag"
           >
-            {added ? <><Check size={15} /> ADDED TO CART</> : 'ADD TO CART'}
+            {added ? <motion.span key="added" className="flex items-center gap-3" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: EASE }}><Check size={15} /> ADDED TO CART</motion.span> : 'ADD TO CART'}
           </button>
+          <div aria-live="polite" className="min-h-0">
+            <AnimatePresence>
+              {added && (
+                <motion.p key="added-note" className="mt-3 border-l-2 border-[#4a5844] bg-[#4a5844]/5 px-3 py-2 text-xs text-[#33412e]" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3, ease: EASE }}>
+                  Added to your bag. {quantity} x size {size}.
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>
           <button type="button" className="mt-4 flex w-full items-center justify-center gap-2 py-3 atelier-label text-[#55574f] hover:text-[#944931]" onClick={() => window.navigator.clipboard?.writeText(window.location.href)} data-testid="button-share-product">
             <Heart size={15} strokeWidth={1.3} /> COPY PIECE LINK
           </button>
@@ -144,13 +160,35 @@ export default function ProductDetailPage() {
 
 function Disclosure({ title, children }: { title: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const panelId = useId();
+  const reduce = useReducedMotion();
   return (
-    <details className="group border-b border-[#d8cab8] py-4" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
-      <summary className="flex cursor-pointer list-none items-center justify-between atelier-label">
+    <div className="group border-b border-[#d8cab8] py-4">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((current) => !current)}
+        className="flex w-full cursor-pointer items-center justify-between text-left atelier-label"
+      >
         {title}
         {open ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-      </summary>
-      <div className="pt-3 text-sm font-light leading-6 text-[#66685f]">{children}</div>
-    </details>
+      </button>
+      <AnimatePresence initial={false}>
+      {open && (
+        <motion.div
+          id={panelId}
+          key="panel"
+          className="overflow-hidden"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: reduce ? 0 : 0.3, ease: EASE }}
+        >
+          <div className="pt-3 text-sm font-light leading-6 text-[#66685f]">{children}</div>
+        </motion.div>
+      )}
+      </AnimatePresence>
+    </div>
   );
 }

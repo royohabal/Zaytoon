@@ -1,0 +1,78 @@
+I need a complete requirements audit of my existing Zaytoon Atelier Palestinian heritage fashion e-commerce website before I submit my assignment.
+
+IMPORTANT:
+- Do not redesign, rebuild, or modify my website yet.
+- Inspect the existing source code, backend, frontend, database integration, authentication, routes, and configuration.
+- Do not assume a feature works just because its UI exists.
+- Do not claim anything is complete unless you can find evidence in the code and, where possible, verify it works.
+- Do not display, print, or expose any API keys, database connection strings, passwords, tokens, or other secrets.
+- Do not make changes during this audit.
+
+Check every requirement below and classify it as:
+1. PASS — implemented and verified.
+2. PARTIAL — implemented but incomplete or not fully verified.
+3. FAIL — missing or broken.
+4. NEEDS MANUAL TEST — cannot be confirmed from source code alone.
+
+REQUIREMENTS
+
+A. DATABASE
+- Is MongoDB Atlas actually connected to the backend?
+- Is the required free M0 cluster being used, where applicable?
+- Is MONGODB_URI stored in Replit Secrets/environment variables?
+- Is the database connection string kept out of frontend code and public files?
+- Are products actually stored in MongoDB?
+- Does the frontend fetch products from a backend API that reads from MongoDB, instead of relying on a hardcoded product catalogue?
+- What happens if the database connection fails?
+
+B. PRODUCT CATALOGUE
+- Do product cards display real database products?
+- Are product names, descriptions, prices, images, categories, sizes, and stock handled correctly where implemented?
+- Do product details, search, filters, and sorting work?
+- Are loading, empty, and error states handled appropriately?
+
+C. SIGN UP AND LOG IN
+- Can a new user register successfully?
+- Are duplicate accounts and invalid inputs handled?
+- Are passwords hashed securely using a suitable password-hashing library?
+- Are plain-text passwords never stored?
+- Can existing users log in and log out?
+- Is authentication verified on the backend?
+- Are protected routes actually protected?
+- Are authentication secrets and sensitive information kept out of frontend code and unsafe storage?
+
+D. BONUS: MY ORDERS
+- Is My Orders protected against unauthenticated access?
+- Does the backend verify the authenticated user's identity for every order request?
+- Are orders associated with the correct user's database ID?
+- Can a user retrieve only their own orders?
+- Does the backend prevent someone from changing a user ID in a request to access another person's orders?
+- Does the page handle users who have no orders?
+
+E. E-COMMERCE FUNCTIONALITY
+- Does Add to Cart work?
+- Can users change quantities and remove items?
+- Are subtotals calculated correctly?
+- Are product pages and navigation links working?
+- Are there any buttons or controls that do nothing?
+- If checkout exists, are prices and stock validated by the backend?
+
+F. DESIGN AND RESPONSIVENESS
+- Does the website preserve its Palestinian heritage fashion identity?
+- Does the layout adapt to desktop, tablet, and mobile?
+- Are the main pages visually consistent?
+- Do animations, menus, buttons, and other interactions work without breaking usability?
+
+G. FINAL REPORT
+Create a table with these columns:
+Requirement | Status | Evidence (file, function, API endpoint, or test result) | What is missing | Exact fix needed.
+
+Separate requirements verified from source code from requirements that still require live testing. Identify any security issues or critical failures first.
+
+At the end, give me:
+- A list of requirements that definitely pass.
+- A list of requirements that are incomplete or failing.
+- A step-by-step manual testing checklist.
+- The exact order in which I should fix any problems.
+
+Do not modify the project until I have reviewed your report.

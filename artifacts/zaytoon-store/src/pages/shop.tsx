@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { keepPreviousData } from '@tanstack/react-query';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Search, X } from 'lucide-react';
-import { useGetProducts, type GetProductsParams } from '@workspace/api-client-react';
-import { apiErrorMessage, ErrorState, LoadingState } from '@/components/page-states';
+import { getGetProductsQueryKey, useGetProducts, type GetProductsParams } from '@workspace/api-client-react';
+import { apiErrorMessage, ErrorState } from '@/components/page-states';
+import { EASE, ProductGridSkeleton } from '@/lib/motion';
 import { ProductCard } from '@/components/product-card';
 
 type SortValue = NonNullable<GetProductsParams['sort']>;
@@ -17,7 +20,10 @@ export default function ShopPage() {
     category: category || undefined,
     sort,
   };
-  const query = useGetProducts(params);
+  const reduce = useReducedMotion();
+  const query = useGetProducts(params, {
+    query: { queryKey: getGetProductsQueryKey(params), placeholderData: keepPreviousData },
+  });
   const products = query.data?.products ?? [];
   const categories = query.data?.categories ?? [];
 
@@ -96,12 +102,28 @@ export default function ShopPage() {
         {category && <button type="button" onClick={() => setCategory('')} className="atelier-label text-[#944931]" data-testid="button-clear-filter">CLEAR FILTER ×</button>}
       </div>
       {query.isLoading ? (
-        <LoadingState label="Finding your next piece" />
+        <ProductGridSkeleton count={8} className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-7 sm:gap-y-14 lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4" />
       ) : query.isError ? (
         <ErrorState onRetry={() => void query.refetch()} description={apiErrorMessage(query.error)} />
       ) : products.length ? (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-7 sm:gap-y-14 lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4">
-          {products.map((product, index) => <ProductCard key={product.id} product={product} index={index} />)}
+        <div
+          className="relative grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-7 sm:gap-y-14 lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4"
+          aria-busy={query.isFetching}
+        >
+          <AnimatePresence mode="popLayout">
+            {products.map((product, index) => (
+              <motion.div
+                key={product.id}
+                layout={reduce ? false : 'position'}
+                initial={reduce ? false : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, pointerEvents: 'none' }}
+                transition={{ duration: reduce ? 0 : 0.35, ease: EASE }}
+              >
+                <ProductCard product={product} index={index} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       ) : (
         <div className="border-t border-[#d8cab8]">

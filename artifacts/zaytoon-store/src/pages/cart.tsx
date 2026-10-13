@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useUser } from '@clerk/react';
 import { useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Minus, Plus, Trash2 } from 'lucide-react';
+import { AnimatedPrice, EASE, Enter, FadeImage } from '@/lib/motion';
 import { getGetMyOrdersQueryKey, useCreateOrder } from '@workspace/api-client-react';
 import { useCart } from '@/lib/cart';
 import { EmptyState } from '@/components/page-states';
@@ -20,6 +22,13 @@ export default function CartPage() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [placedOrder, setPlacedOrder] = useState('');
+  const reduce = useReducedMotion();
+  const pageMotion = {
+    initial: reduce ? false as const : { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0, pointerEvents: 'none' as const },
+    transition: { duration: reduce ? 0 : 0.25 },
+  };
   const createOrder = useCreateOrder({
     mutation: {
       onSuccess: async (order) => {
@@ -48,7 +57,7 @@ export default function CartPage() {
 
   if (placedOrder) {
     return (
-      <main className="mx-auto min-h-[60vh] max-w-[1440px] px-6 py-20 text-center sm:py-28" data-testid="status-order-created">
+      <AnimatePresence mode="wait"><motion.main key="received" {...pageMotion} className="mx-auto min-h-[60vh] max-w-[1440px] px-6 py-20 text-center sm:py-28" data-testid="status-order-created">
         <p className="atelier-label text-[#4a5844]">ORDER RECEIVED</p>
         <h1 className="atelier-heading mt-4 text-4xl sm:text-5xl">Your order has been received.</h1>
         <p className="mt-4 text-sm text-[#66685f]">Your order number is <span className="font-medium text-[#1c1c1a]">{placedOrder}</span>.</p>
@@ -56,34 +65,35 @@ export default function CartPage() {
           <button type="button" onClick={() => setLocation('/orders')} className="bg-[#4a5844] px-7 py-4 atelier-label text-[#fcf9f5] hover:bg-[#1c1c1a]" data-testid="button-view-orders">VIEW MY ORDERS</button>
           <Link href="/shop" className="border border-[#1c1c1a] px-7 py-4 atelier-label hover:bg-[#4a5844] hover:text-[#fcf9f5]" data-testid="link-continue-shopping">CONTINUE EXPLORING</Link>
         </div>
-      </main>
+      </motion.main></AnimatePresence>
     );
   }
 
   if (!items.length) {
     return (
-      <main className="mx-auto max-w-[1440px] px-6 py-12 sm:px-10">
+      <AnimatePresence mode="wait"><motion.main key="empty" {...pageMotion} className="mx-auto max-w-[1440px] px-6 py-12 sm:px-10">
         <div className="border-b border-[#d8cab8] pb-7">
           <p className="atelier-label text-[#944931]">YOUR SELECTION</p>
           <h1 className="atelier-heading mt-3 text-5xl">The bag</h1>
         </div>
-        <EmptyState title="Your bag is waiting." copy="Pieces chosen with care belong here. Take a look through the collection." />
-      </main>
+        <Enter><EmptyState title="Your bag is waiting." copy="Pieces chosen with care belong here. Take a look through the collection." /></Enter>
+      </motion.main></AnimatePresence>
     );
   }
 
   return (
-    <main className="mx-auto min-h-[65vh] max-w-[1440px] px-5 pb-20 pt-10 sm:px-10 sm:pt-16 lg:px-16">
+    <AnimatePresence mode="wait"><motion.main key="bag" {...pageMotion} className="mx-auto min-h-[65vh] max-w-[1440px] px-5 pb-20 pt-10 sm:px-10 sm:pt-16 lg:px-16">
       <div className="border-b border-[#d8cab8] pb-8">
         <p className="atelier-label text-[#944931]">YOUR SELECTION · {items.length} {items.length === 1 ? 'PIECE' : 'PIECES'}</p>
         <h1 className="atelier-heading mt-3 text-5xl sm:text-6xl">The bag</h1>
       </div>
       <div className="grid gap-10 pt-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-16">
         <div>
+          <AnimatePresence>
           {items.map((item) => (
-            <article key={`${item.productId}-${item.size}`} className="grid grid-cols-[100px_1fr] gap-4 border-b border-[#d8cab8] py-5 sm:grid-cols-[150px_1fr] sm:gap-6" data-testid={`row-cart-item-${item.productId}-${item.size}`}>
+            <motion.article layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.35, ease: EASE }} key={`${item.productId}-${item.size}`} className="grid grid-cols-[100px_1fr] gap-4 border-b border-[#d8cab8] py-5 sm:grid-cols-[150px_1fr] sm:gap-6" data-testid={`row-cart-item-${item.productId}-${item.size}`}>
               <Link href={`/products/${item.productId}`} className="product-image aspect-[4/5]" data-testid={`link-cart-product-${item.productId}`}>
-                <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                <FadeImage src={item.image} alt={item.name} className="h-full w-full object-cover" />
               </Link>
               <div className="flex flex-col justify-between py-1">
                 <div className="flex items-start justify-between gap-4">
@@ -91,7 +101,7 @@ export default function CartPage() {
                     <Link href={`/products/${item.productId}`} className="atelier-heading text-xl sm:text-2xl" data-testid={`text-cart-product-${item.productId}`}>{item.name}</Link>
                     <p className="mt-2 text-xs text-[#66685f]">Size: {item.size}</p>
                   </div>
-                  <p className="atelier-label whitespace-nowrap">${(item.unitPrice * item.quantity).toFixed(2)}</p>
+                  <AnimatedPrice value={item.unitPrice * item.quantity} className="atelier-label whitespace-nowrap" />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center border border-[#c5c8be]">
@@ -104,8 +114,9 @@ export default function CartPage() {
                   </button>
                 </div>
               </div>
-            </article>
+            </motion.article>
           ))}
+          </AnimatePresence>
           <Link href="/shop" className="atelier-label atelier-link mt-6 inline-flex items-center gap-2" data-testid="link-back-to-shop">
             <ArrowRight size={13} className="rotate-180" /> Continue exploring
           </Link>
@@ -114,18 +125,20 @@ export default function CartPage() {
           <p className="atelier-label">ORDER SUMMARY</p>
           <div className="mt-6 flex justify-between border-b border-[#d8cab8] pb-4 text-sm">
             <span>Subtotal</span>
-            <span data-testid="text-cart-subtotal">${subtotal.toFixed(2)}</span>
+            <AnimatedPrice value={subtotal} data-testid="text-cart-subtotal" />
           </div>
           <div className="flex justify-between border-b border-[#d8cab8] py-4 text-sm">
             <span>Delivery</span>
             <span className="text-xs text-[#66685f]">Not included</span>
           </div>
           <p className="mt-4 text-xs font-light leading-5 text-[#66685f]">This order records the item subtotal only. Delivery and online payment are not processed by this site.</p>
+          <AnimatePresence>
           {createOrder.isError && (
-            <p className="mt-4 border-l-2 border-[#944931] bg-[#944931]/5 px-3 py-2 text-xs leading-5 text-[#77331d]" role="alert" data-testid="status-order-error">
+            <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="mt-4 border-l-2 border-[#944931] bg-[#944931]/5 px-3 py-2 text-xs leading-5 text-[#77331d]" role="alert" data-testid="status-order-error">
               {errorMessage(createOrder.error)}
-            </p>
+            </motion.p>
           )}
+          </AnimatePresence>
           <button
             type="button"
             onClick={placeOrder}
@@ -139,6 +152,6 @@ export default function CartPage() {
           <p className="mt-4 text-center text-[10px] leading-5 text-[#74766f]">Prices and availability are rechecked when your order is placed. Online payment is not enabled here.</p>
         </aside>
       </div>
-    </main>
+    </motion.main></AnimatePresence>
   );
 }

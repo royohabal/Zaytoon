@@ -1,4 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { MotionConfig } from 'framer-motion';
+import { Enter, PageFade } from '@/lib/motion';
 import { ClerkProvider, SignIn, SignUp, useAuth, useClerk } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
@@ -107,7 +109,7 @@ function StoreLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-[100dvh]">
       <Header />
-      {children}
+      <PageFade>{children}</PageFade>
       <Footer />
     </div>
   );
@@ -170,7 +172,7 @@ function SignInPage() {
           <span className="atelier-heading block text-[27px] tracking-[-0.07em]">ZAYTOON</span>
           <span className="mt-1 block text-[8px] tracking-[0.31em]">ATELIER</span>
         </a>
-        <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+        <Enter className="w-full max-w-[440px]"><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} /></Enter>
         <a href={`${basePath || ''}/`} className="atelier-label atelier-link mt-8 text-[9px]">RETURN TO THE ATELIER</a>
       </div>
     </main>
@@ -193,7 +195,7 @@ function SignUpPage() {
           <span className="atelier-heading block text-[27px] tracking-[-0.07em]">ZAYTOON</span>
           <span className="mt-1 block text-[8px] tracking-[0.31em]">ATELIER</span>
         </a>
-        <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+        <Enter className="w-full max-w-[440px]"><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} /></Enter>
         <a href={`${basePath || ''}/`} className="atelier-label atelier-link mt-8 text-[9px]">RETURN TO THE ATELIER</a>
       </div>
     </main>
@@ -240,6 +242,7 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 
 function App() {
   return (
+    <MotionConfig reducedMotion="user">
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <CartProvider>
@@ -252,6 +255,7 @@ function App() {
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
+    </MotionConfig>
   );
 }
 

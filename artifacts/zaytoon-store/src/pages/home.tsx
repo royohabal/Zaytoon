@@ -3,7 +3,8 @@ import type { ReactNode } from 'react';
 import { ArrowRight, ArrowUpRight, Leaf, Scissors, Sparkles } from 'lucide-react';
 import { useGetFeaturedProducts, useGetProducts } from '@workspace/api-client-react';
 import { ProductCard } from '@/components/product-card';
-import { apiErrorMessage, ErrorState, LoadingState } from '@/components/page-states';
+import { apiErrorMessage, ErrorState } from '@/components/page-states';
+import { DrawIn, FadeImage, ImageReveal, ParallaxImage, ProductGridSkeleton, Reveal, RevealSection } from '@/lib/motion';
 
 export default function HomePage() {
   const featured = useGetFeaturedProducts();
@@ -22,7 +23,8 @@ export default function HomePage() {
   return (
     <main>
       <section className="relative min-h-[620px] overflow-hidden bg-[#e7e3dc] sm:min-h-[680px] lg:min-h-[min(760px,calc(100dvh-120px))]">
-        <img
+        <ParallaxImage
+          amount={4}
           src="/images/zaytoon-hero.jpg"
           alt="Olive tailoring in a sunlit Palestinian stone courtyard"
           className="absolute inset-0 h-full w-full object-cover object-[58%_center]"
@@ -49,7 +51,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="absolute bottom-0 left-0 right-0 hidden h-[3px] opacity-70 sm:block">
-          <div className="tatreez-rule h-full" />
+          <DrawIn className="h-full"><div className="tatreez-rule h-full" /></DrawIn>
         </div>
         <div className="absolute bottom-7 right-8 hidden text-right text-[9px] tracking-[0.17em] text-white/80 lg:block">
           <span>01 — A LIVING ARCHIVE</span><br />
@@ -57,7 +59,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1440px] px-6 py-20 sm:px-10 sm:py-28 lg:px-16">
+      <RevealSection className="mx-auto max-w-[1440px] px-6 py-20 sm:px-10 sm:py-28 lg:px-16">
         <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <div>
             <p className="atelier-label text-[#944931]">THE COLLECTION</p>
@@ -68,7 +70,7 @@ export default function HomePage() {
           </Link>
         </div>
         {featured.isLoading ? (
-          <LoadingState label="Preparing the featured collection" />
+          <div className="mt-10"><ProductGridSkeleton /></div>
         ) : featured.isError ? (
           <ErrorState onRetry={() => void featured.refetch()} />
         ) : featured.data?.length ? (
@@ -83,9 +85,9 @@ export default function HomePage() {
             <Link href="/shop" className="atelier-label atelier-link mt-5 inline-block">Browse the collection</Link>
           </div>
         )}
-      </section>
+      </RevealSection>
 
-      <section className="mx-auto max-w-[1440px] px-6 pb-20 sm:px-10 sm:pb-28 lg:px-16">
+      <RevealSection className="mx-auto max-w-[1440px] px-6 pb-20 sm:px-10 sm:pb-28 lg:px-16">
         <div className="flex flex-col justify-between gap-5 border-b border-[#d8cab8] pb-6 sm:flex-row sm:items-end">
           <div>
             <p className="atelier-label text-[#944931]">THE EDIT</p>
@@ -96,7 +98,7 @@ export default function HomePage() {
           </Link>
         </div>
         {catalogue.isLoading ? (
-          <LoadingState label="Opening the collections" />
+          <div className="mt-9"><ProductGridSkeleton count={3} className="grid gap-4 sm:grid-cols-3 sm:gap-6" /></div>
         ) : catalogue.isError ? (
           <ErrorState
             onRetry={() => void catalogue.refetch()}
@@ -111,14 +113,14 @@ export default function HomePage() {
                 className="group"
                 data-testid={`link-featured-collection-${index}`}
               >
-                <div className="product-image aspect-[4/5] overflow-hidden">
-                  <img
+                <ImageReveal className="product-image aspect-[4/5] overflow-hidden">
+                  <FadeImage
                     src={product!.images[0]}
                     alt={`${name} collection`}
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.025]"
                     loading="lazy"
                   />
-                </div>
+                </ImageReveal>
                 <div className="flex items-baseline justify-between border-b border-[#d8cab8] py-4">
                   <h3 className="atelier-heading text-2xl">{name}</h3>
                   <span className="atelier-label text-[9px] text-[#74766f]">
@@ -133,10 +135,10 @@ export default function HomePage() {
             <p className="atelier-heading text-2xl">The next chapter is taking shape.</p>
           </div>
         )}
-      </section>
+      </RevealSection>
 
       <section className="bg-[#f6f3ef]">
-        <div className="mx-auto max-w-[1440px] px-6 py-20 sm:px-10 sm:py-28 lg:px-16">
+        <Reveal className="mx-auto max-w-[1440px] px-6 py-20 sm:px-10 sm:py-28 lg:px-16">
           <div className="flex flex-col justify-between gap-5 border-b border-[#d8cab8] pb-6 sm:flex-row sm:items-end">
             <div>
               <p className="atelier-label text-[#944931]">JUST ARRIVED</p>
@@ -147,7 +149,7 @@ export default function HomePage() {
             </Link>
           </div>
           {catalogue.isLoading ? (
-            <LoadingState label="Finding the latest pieces" />
+            <div className="mt-9"><ProductGridSkeleton /></div>
           ) : catalogue.isError ? (
             <ErrorState
               onRetry={() => void catalogue.refetch()}
@@ -167,14 +169,14 @@ export default function HomePage() {
               </Link>
             </div>
           )}
-        </div>
+        </Reveal>
       </section>
 
       <section id="craft" className="bg-[#f0edea]">
-        <div className="mx-auto grid max-w-[1440px] gap-10 px-6 py-16 sm:px-10 sm:py-20 lg:grid-cols-[1fr_1.05fr] lg:items-center lg:gap-20 lg:px-16 lg:py-24">
+        <Reveal className="mx-auto grid max-w-[1440px] gap-10 px-6 py-16 sm:px-10 sm:py-20 lg:grid-cols-[1fr_1.05fr] lg:items-center lg:gap-20 lg:px-16 lg:py-24">
           <div className="order-2 lg:order-1">
             <div className="mb-7 flex items-center gap-3 text-[#4a5844]">
-              <span className="h-[1px] w-10 bg-[#4a5844]" />
+              <DrawIn><span className="block h-[1px] w-10 bg-[#4a5844]" /></DrawIn>
               <p className="atelier-label">THE ART OF TATREEZ</p>
             </div>
             <h2 className="atelier-heading max-w-[560px] text-4xl leading-[1.12] sm:text-5xl">
@@ -202,22 +204,25 @@ export default function HomePage() {
             </a>
           </div>
           <div className="order-1 relative lg:order-2">
-            <img
+            <ImageReveal className="overflow-hidden">
+            <ParallaxImage
+              amount={3}
               src="/images/tatreez-craft.jpg"
               alt="Artisan hands stitching Palestinian embroidery into olive wool"
               className="aspect-[1.15/1] w-full object-cover"
               loading="lazy"
               data-testid="img-tatreez-craft"
             />
+            </ImageReveal>
             <span className="absolute -bottom-3 -left-3 border border-[#4a5844] bg-[#fcf9f5] px-4 py-3 atelier-label text-[9px] text-[#4a5844] sm:-bottom-5 sm:-left-5">
               THREAD · PLACE · MEMORY
             </span>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <section id="story" className="bg-[#252622] text-[#fcf9f5]">
-        <div className="mx-auto grid max-w-[1440px] gap-10 px-6 py-20 sm:px-10 lg:grid-cols-[1fr_1.25fr] lg:gap-24 lg:px-16 lg:py-28">
+        <Reveal className="mx-auto grid max-w-[1440px] gap-10 px-6 py-20 sm:px-10 lg:grid-cols-[1fr_1.25fr] lg:gap-24 lg:px-16 lg:py-28">
           <div>
             <p className="atelier-label text-[#d8cab8]">A NOTE FROM THE ATELIER</p>
             <h2 className="atelier-heading mt-5 text-4xl leading-[1.12] sm:text-5xl">Dignity woven into modern living.</h2>
@@ -234,10 +239,10 @@ export default function HomePage() {
               Find your piece <ArrowRight size={14} />
             </Link>
           </div>
-        </div>
+        </Reveal>
       </section>
 
-      <section className="mx-auto max-w-[1440px] px-6 py-16 sm:px-10 sm:py-20 lg:px-16">
+      <RevealSection className="mx-auto max-w-[1440px] px-6 py-16 sm:px-10 sm:py-20 lg:px-16">
         <div className="flex flex-col items-center text-center">
           <Sparkles size={19} className="text-[#944931]" strokeWidth={1.2} />
           <p className="atelier-label mt-4 text-[#944931]">A PRACTICE OF CARE</p>
@@ -251,7 +256,7 @@ export default function HomePage() {
           <CraftValue icon={<Leaf size={19} strokeWidth={1.3} />} title="Heritage, held close" text="Palestinian craft remains present in every deliberate detail." />
           <CraftValue icon={<Sparkles size={19} strokeWidth={1.3} />} title="Made to return to" text="Pieces made with care, to be worn and kept for years." />
         </div>
-      </section>
+      </RevealSection>
     </main>
   );
 }

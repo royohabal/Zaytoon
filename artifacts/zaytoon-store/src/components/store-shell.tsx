@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from 'framer-motion';
+import { EASE } from '@/lib/motion';
 import { Link } from 'wouter';
 import { useClerk, useUser } from '@clerk/react';
 import { Menu, ShoppingBag, UserRound, X } from 'lucide-react';
@@ -8,6 +10,16 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const { count } = useCart();
   const { isSignedIn } = useUser();
+  const bump = useAnimationControls();
+  const reduce = useReducedMotion();
+  const previousCount = useRef(count);
+
+  useEffect(() => {
+    if (previousCount.current !== count) {
+      previousCount.current = count;
+      void bump.start({ scale: reduce ? 1 : [1.35, 1], transition: { duration: reduce ? 0 : 0.35, ease: EASE } });
+    }
+  }, [count, bump, reduce]);
 
   const closeMenu = () => setOpen(false);
 
@@ -25,7 +37,9 @@ export function Header() {
             data-testid="button-mobile-menu"
             onClick={() => setOpen((value) => !value)}
           >
-            {open ? <X size={20} strokeWidth={1.4} /> : <Menu size={20} strokeWidth={1.4} />}
+            <span className="transition-transform duration-300" style={{ transform: open ? 'rotate(90deg)' : 'none' }}>
+              {open ? <X size={20} strokeWidth={1.4} /> : <Menu size={20} strokeWidth={1.4} />}
+            </span>
           </button>
           <nav className="hidden items-center gap-8 lg:flex" aria-label="Main navigation">
             <Link href="/shop" className="atelier-label atelier-link text-[10px]" data-testid="link-shop">
@@ -53,18 +67,27 @@ export function Header() {
               data-testid="link-account"
             >
               <UserRound size={17} strokeWidth={1.35} />
-              <span className="uppercase">{isSignedIn ? 'Account' : 'Sign in'}</span>
+              <span className="uppercase atelier-link">{isSignedIn ? 'Account' : 'Sign in'}</span>
             </Link>
             <Link href="/cart" className="relative flex items-center gap-2" data-testid="link-cart">
               <ShoppingBag size={18} strokeWidth={1.35} />
               <span className="hidden text-[10px] font-medium tracking-[0.14em] sm:block">BAG</span>
-              <span className="flex h-[18px] min-w-[18px] items-center justify-center bg-[#c26d53] px-1 text-[9px] text-white" data-testid="text-cart-count">
+              <motion.span animate={bump} className="flex h-[18px] min-w-[18px] items-center justify-center bg-[#c26d53] px-1 text-[9px] text-white" data-testid="text-cart-count">
                 {count}
-              </span>
+              </motion.span>
             </Link>
           </div>
         </div>
+        <AnimatePresence initial={false}>
         {open && (
+          <motion.div
+            key="mobile-menu"
+            className="overflow-hidden lg:hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: reduce ? 0 : 0.35, ease: EASE }}
+          >
           <nav className="border-t border-[#1c1c1a]/10 bg-[#fcf9f5] px-6 py-7 lg:hidden" aria-label="Mobile navigation">
             <div className="flex flex-col gap-6">
               <Link href="/shop" onClick={closeMenu} className="atelier-heading text-2xl" data-testid="mobile-link-shop">
@@ -81,7 +104,9 @@ export function Header() {
               </Link>
             </div>
           </nav>
+          </motion.div>
         )}
+        </AnimatePresence>
       </header>
     </>
   );
