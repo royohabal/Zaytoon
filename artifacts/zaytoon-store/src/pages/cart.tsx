@@ -50,7 +50,7 @@ export default function CartPage() {
     return (
       <main className="mx-auto min-h-[60vh] max-w-[1440px] px-6 py-20 text-center sm:py-28" data-testid="status-order-created">
         <p className="atelier-label text-[#4a5844]">ORDER RECEIVED</p>
-        <h1 className="atelier-heading mt-4 text-4xl sm:text-5xl">A piece is on its way.</h1>
+        <h1 className="atelier-heading mt-4 text-4xl sm:text-5xl">Your order has been received.</h1>
         <p className="mt-4 text-sm text-[#66685f]">Your order number is <span className="font-medium text-[#1c1c1a]">{placedOrder}</span>.</p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <button type="button" onClick={() => setLocation('/orders')} className="bg-[#4a5844] px-7 py-4 atelier-label text-[#fcf9f5] hover:bg-[#1c1c1a]" data-testid="button-view-orders">VIEW MY ORDERS</button>
@@ -118,9 +118,9 @@ export default function CartPage() {
           </div>
           <div className="flex justify-between border-b border-[#d8cab8] py-4 text-sm">
             <span>Delivery</span>
-            <span className="text-xs text-[#66685f]">Calculated at checkout</span>
+            <span className="text-xs text-[#66685f]">Not included</span>
           </div>
-          <p className="mt-4 text-xs font-light leading-5 text-[#66685f]">Taxes and delivery are confirmed with your order.</p>
+          <p className="mt-4 text-xs font-light leading-5 text-[#66685f]">This order records the item subtotal only. Delivery and online payment are not processed by this site.</p>
           {createOrder.isError && (
             <p className="mt-4 border-l-2 border-[#944931] bg-[#944931]/5 px-3 py-2 text-xs leading-5 text-[#77331d]" role="alert" data-testid="status-order-error">
               {errorMessage(createOrder.error)}

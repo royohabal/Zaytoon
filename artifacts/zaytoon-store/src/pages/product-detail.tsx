@@ -71,7 +71,7 @@ export default function ProductDetailPage() {
           <h1 className="atelier-heading mt-3 text-4xl leading-tight sm:text-5xl" data-testid="text-product-name">{product.name}</h1>
           <div className="mt-5 flex items-center justify-between border-b border-[#d8cab8] pb-5">
             <p className="atelier-label" data-testid="text-detail-price">${product.price.toFixed(2)}</p>
-            <p className="text-xs text-[#74766f]">{available ? 'Complimentary delivery on orders over $250' : 'Currently unavailable'}</p>
+            <p className="text-xs text-[#74766f]">{available ? 'Available in the atelier' : 'Currently unavailable'}</p>
           </div>
           <p className="mt-6 text-sm font-light leading-7 text-[#55574f]" data-testid="text-product-description">
             {product.description}
@@ -129,7 +129,7 @@ export default function ProductDetailPage() {
               <p>Rooted in Palestinian craft traditions and made with a contemporary point of view.</p>
             </Disclosure>
             <Disclosure title="Delivery & returns">
-              <p>Delivery and return details are shared at checkout and in your order confirmation.</p>
+              <p>Online payment, delivery calculations, and returns processing are not enabled on this site yet.</p>
             </Disclosure>
           </div>
           <div id="size-note" className="mt-7 border border-[#d8cab8] p-4">
