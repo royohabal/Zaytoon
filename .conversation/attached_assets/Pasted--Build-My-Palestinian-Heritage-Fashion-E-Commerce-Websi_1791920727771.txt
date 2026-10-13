@@ -1,0 +1,115 @@
+# Build My Palestinian Heritage Fashion E-Commerce Website
+
+I have designed a Palestinian heritage clothing e-commerce website in Stitch. Use my imported Stitch design as the main visual reference and implement it as a complete, functional website. Do not replace the design with a generic e-commerce template.
+
+## 1. Design and Brand Identity
+
+Create a distinctive, premium contemporary Palestinian fashion brand that feels like a real clothing label.
+
+- Follow the layout, visual style, colors, typography, spacing, and imagery of my Stitch design as closely as possible.
+- Use a sophisticated palette of warm ivory, olive green, charcoal, and subtle Palestinian red accents, adjusting to match the Stitch design.
+- Incorporate Palestinian cultural elements tastefully, such as tatreez embroidery, olive branches, traditional patterns, and keffiyeh-inspired details.
+- Use high-quality clothing photography, large editorial images, elegant product cards, subtle transitions, and generous whitespace.
+- Make the website visually engaging, polished, modern, and distinctive rather than text-heavy.
+- Ensure the site is fully responsive on desktop, tablet, and mobile.
+- Do not invent a new brand name or replace my existing branding. Keep the name and logo from my design.
+
+## 2. Pages and Navigation
+
+Implement the pages and sections shown in my Stitch design, including:
+
+- Homepage with a visually striking hero section, a clear Shop Now button, featured collections, new arrivals, and a short brand story.
+- Shop page with a product grid, category filters, and sorting.
+- Individual product detail pages with images, descriptions, prices, available sizes, quantity selection, and Add to Cart.
+- Shopping cart with editable quantities, remove-item functionality, and a calculated subtotal.
+- Sign Up and Log In pages.
+- Customer account page.
+- Protected My Orders page.
+- A consistent header, navigation menu, footer, and mobile navigation.
+
+Use concise copy and prioritize product photography and visual storytelling.
+
+## 3. MongoDB Atlas Integration — Required
+
+Use MongoDB Atlas with the free M0 cluster.
+
+- Connect the backend to MongoDB using the MONGODB_URI environment variable stored in Replit Secrets.
+- Never expose the database URI, passwords, authentication secrets, or private environment variables in frontend code.
+- Create an appropriate Product collection and store the shop products in MongoDB.
+- Load products dynamically from MongoDB through backend API endpoints. Do not hardcode the main product catalogue in the frontend.
+- Include product fields such as name, description, price, category, images, sizes, stock quantity, and featured status.
+- Display clear loading, empty, and error states.
+- Add appropriate backend validation and error handling.
+- If the database is not configured, show a clear setup error rather than falsely claiming that database functionality works.
+
+## 4. User Registration and Login — Required
+
+Implement real user authentication, not decorative forms.
+
+- Allow users to register, log in, and log out.
+- Validate email addresses and passwords on the backend.
+- Hash passwords securely using a suitable password-hashing library such as bcrypt.
+- Never store or return plain-text passwords.
+- Use secure session handling or properly implemented authentication tokens.
+- Protect private routes and verify authentication on the backend.
+- Display helpful messages for invalid credentials, duplicate accounts, and successful actions.
+- Do not store passwords or sensitive authentication information in localStorage.
+
+## 5. My Orders — Bonus Requirement
+
+Implement a real protected My Orders feature.
+
+- Create an Order collection in MongoDB.
+- Associate every order with the authenticated user's database ID.
+- Only authenticated users can access the My Orders page.
+- Every request for orders must verify the user's identity on the backend.
+- Users must only be able to see their own orders, never another user's orders.
+- Do not trust a user ID supplied by the frontend to authorize access.
+- Display order number, date, products, quantities, total price, and order status.
+- If a user is logged out, redirect them to Log In or show an authentication message.
+- If a logged-in user has no orders, show a well-designed empty state.
+
+If checkout is included, validate product prices and stock on the backend rather than trusting prices submitted by the browser.
+
+## 6. Working E-Commerce Interactions
+
+Make all visible controls functional:
+
+- Product cards open the correct product details.
+- Category filters and sorting update the displayed products.
+- Add to Cart updates the cart correctly.
+- Cart quantities, item removal, and totals update immediately.
+- Sign Up, Log In, and Log Out work with the backend.
+- My Orders loads only the current user's orders.
+- Navigation links, search, buttons, and mobile menus work.
+- Show success and error feedback when appropriate.
+
+Do not add buttons that look functional but do nothing. Do not simulate successful registration, database access, login, or order retrieval with fake data.
+
+## 7. Technical Quality
+
+- First inspect the existing project, its framework, and the imported Stitch design.
+- Preserve the existing working code and reuse suitable components instead of unnecessarily rebuilding everything.
+- Use a clean, maintainable component structure.
+- Keep database access and authentication logic on the server.
+- Add input validation, safe error handling, and sensible security practices.
+- Use accessible labels, readable contrast, and keyboard-friendly controls.
+- Avoid unnecessary dependencies and do not break existing functionality.
+- Do not put secrets into source files or commit them to the repository.
+
+## 8. Implementation and Testing
+
+Implement the project in stages:
+
+1. Inspect the existing code and match the Stitch design.
+2. Build the responsive frontend and product pages.
+3. Set up MongoDB Atlas and the Product collection.
+4. Implement backend product API endpoints and dynamic product loading.
+5. Implement secure registration, login, and logout.
+6. Implement protected My Orders and order ownership checks.
+7. Connect and test all interactions.
+8. Fix errors and verify that the project builds and runs successfully.
+
+After implementation, explain exactly what has been completed, which environment variables I need to configure in Replit Secrets, and what I must do manually in MongoDB Atlas.
+
+Do not claim a feature is complete unless it has actually been implemented and tested. Prioritize preserving the Stitch design while meeting every functional requirement.
