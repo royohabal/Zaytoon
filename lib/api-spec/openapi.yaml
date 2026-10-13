@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: products
+    description: Public product catalogue
+  - name: orders
+    description: Authenticated order history and order placement
 paths:
   /healthz:
     get:
@@ -24,7 +28,162 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /products:
+    get:
+      operationId: getProducts
+      tags: [products]
+      summary: Browse the product catalogue
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [newest, price_asc, price_desc, name_asc]
+      responses:
+        "200":
+          description: Catalogue results from MongoDB Atlas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+        "503":
+          description: MongoDB Atlas is not configured or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /products/featured:
+    get:
+      operationId: getFeaturedProducts
+      tags: [products]
+      summary: Get featured products
+      responses:
+        "200":
+          description: Featured catalogue items from MongoDB Atlas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+        "503":
+          description: MongoDB Atlas is not configured or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product details from MongoDB Atlas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: MongoDB Atlas is not configured or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /orders:
+    get:
+      operationId: getMyOrders
+      tags: [orders]
+      summary: Get the signed-in customer's orders
+      security:
+        - clerkSession: []
+      responses:
+        "200":
+          description: Orders belonging to the current customer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: MongoDB Atlas is not configured or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Place an order using server-validated catalogue prices and stock
+      security:
+        - clerkSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Order placed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid order or insufficient stock
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: MongoDB Atlas is not configured or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
+  securitySchemes:
+    clerkSession:
+      type: apiKey
+      in: cookie
+      name: __session
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +192,123 @@ components:
           type: string
       required:
         - status
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          minimum: 0
+        category:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        sizes:
+          type: array
+          items:
+            type: string
+        stockQuantity:
+          type: integer
+          minimum: 0
+        featured:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - description
+        - price
+        - category
+        - images
+        - sizes
+        - stockQuantity
+        - featured
+        - createdAt
+    ProductListResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        categories:
+          type: array
+          items:
+            type: string
+      required: [products, categories]
+    OrderLineInput:
+      type: object
+      properties:
+        productId:
+          type: string
+          minLength: 24
+          maxLength: 24
+        size:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 10
+      required: [productId, size, quantity]
+    OrderInput:
+      type: object
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: "#/components/schemas/OrderLineInput"
+      required: [items]
+    OrderLine:
+      type: object
+      properties:
+        productId:
+          type: string
+        name:
+          type: string
+        image:
+          type: string
+        size:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+      required: [productId, name, image, size, quantity, unitPrice]
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        orderNumber:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderLine"
+        total:
+          type: number
+        status:
+          type: string
+          enum: [received, preparing, shipped, delivered]
+      required: [id, orderNumber, createdAt, items, total, status]
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
 

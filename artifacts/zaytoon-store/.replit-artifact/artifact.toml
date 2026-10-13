@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Zaytoon Atelier"
+description = "A Palestinian heritage fashion storefront for discovering Zaytoon Atelier collections, managing a shopping bag, and viewing personal orders."
+version = "1.0.0"
+id = "artifacts/zaytoon-store"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21305
+
+[services.development]
+run = "pnpm --filter @workspace/zaytoon-store run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/zaytoon-store", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/zaytoon-store/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21305"
+BASE_PATH = "/"
