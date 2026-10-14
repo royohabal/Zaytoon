@@ -184,10 +184,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     staleTime: (currentQuery) => {
       const nextUpdateAt = currentQuery.state.data?.nextUpdateAt;
       if (!nextUpdateAt) return 0;
-      return Math.max(
-        0,
-        Date.parse(nextUpdateAt) + PROVIDER_REFRESH_GRACE_MS - Date.now(),
-      );
+      return Math.max(0, Date.parse(nextUpdateAt) - Date.now());
     },
     refetchInterval: (currentQuery) => {
       const nextUpdateAt = currentQuery.state.data?.nextUpdateAt;
@@ -229,7 +226,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       isUnavailable: query.isError && rates === null,
       ratesAreStale:
         rates !== null &&
-        (query.isError || Date.now() >= Date.parse(rates.nextUpdateAt)),
+        (query.isError || query.isStale || Date.now() >= Date.parse(rates.nextUpdateAt)),
       updatedAt: rates?.updatedAt ?? null,
       formatAmount,
       formatBasePrice: (usdAmount) =>
@@ -239,7 +236,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         await query.refetch();
       },
     };
-  }, [currency, query.data, query.isError, query.isPending, query.refetch]);
+  }, [currency, query.data, query.isError, query.isPending, query.isStale, query.refetch]);
 
   return <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>;
 }

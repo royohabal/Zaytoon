@@ -9,6 +9,7 @@ import {
   GetProductsQueryParams,
   GetProductsResponse,
 } from "@workspace/api-zod";
+import type { CurrencyCode } from "@workspace/api-zod";
 import {
   ObjectId,
   type ClientSession,
@@ -178,7 +179,7 @@ async function createOrderRecord(
   session: ClientSession,
   userId: string,
   lines: Array<{ productId: string; size: string; quantity: number }>,
-  displayCurrency: CreateOrderBody["displayCurrency"],
+  displayCurrency: CurrencyCode,
   exchangeRate: number,
   exchangeRateDate: Date | null,
 ): Promise<StoredOrder> {
@@ -301,7 +302,7 @@ router.post("/orders", async (req, res): Promise<void> => {
     if (
       !requestedRateDate ||
       !quote.updatedAt ||
-      new Date(requestedRateDate).getTime() !== quote.updatedAt.getTime()
+      requestedRateDate.getTime() !== quote.updatedAt.getTime()
     ) {
       res.status(409).json({
         error: "Exchange rates have changed. Review the updated prices and try again.",

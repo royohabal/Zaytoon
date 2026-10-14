@@ -91,7 +91,7 @@ export default function CartPage() {
         })),
         displayCurrency: currency,
         exchangeRateDate:
-          currency === 'USD' || !rates ? null : new Date(rates.updatedAt),
+          currency === 'USD' || !rates ? null : rates.updatedAt,
       },
     });
   };
@@ -148,6 +148,7 @@ export default function CartPage() {
                     <p className="mt-2 text-xs text-[#66685f]">Size: {item.size}</p>
                   </div>
                   <AnimatedPrice
+                    key={`${currency}-${item.productId}-${item.size}`}
                     value={convertBasePrice(item.unitPrice * item.quantity)}
                     formatValue={(amount) => formatAmount(amount, effectiveCurrency)}
                     className="atelier-label whitespace-nowrap"
@@ -176,6 +177,7 @@ export default function CartPage() {
           <div className="mt-6 flex justify-between border-b border-[#d8cab8] pb-4 text-sm">
             <span>Subtotal</span>
             <AnimatedPrice
+              key={currency}
               value={convertBasePrice(subtotal)}
               formatValue={(amount) => formatAmount(amount, effectiveCurrency)}
               data-testid="text-cart-subtotal"
