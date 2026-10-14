@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { CurrencyCode } from './currencyCode';
 import type { OrderLineInput } from './orderLineInput';
 
 export interface OrderInput {
@@ -13,4 +14,10 @@ export interface OrderInput {
      * @maxItems 20
      */
   items: OrderLineInput[];
+  displayCurrency: CurrencyCode;
+  /**
+     * UTC date of the exchange rates used for display; null when USD is selected
+     * @nullable
+     */
+  exchangeRateDate: Date | null;
 }

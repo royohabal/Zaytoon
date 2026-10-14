@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { CurrencyCode } from './currencyCode';
 import type { OrderLine } from './orderLine';
 import type { OrderStatus } from './orderStatus';
 
@@ -13,6 +14,18 @@ export interface Order {
   orderNumber: string;
   createdAt: Date;
   items: OrderLine[];
+  /** Immutable original order total in the base currency */
   total: number;
+  baseCurrency: CurrencyCode;
+  displayCurrency: CurrencyCode;
+  /** Immutable order total in the currency selected at checkout */
+  displayTotal: number;
+  /** Number of display-currency units per base-currency unit */
+  exchangeRate: number;
+  /**
+     * UTC date of the exchange rate saved with this order
+     * @nullable
+     */
+  exchangeRateDate: Date | null;
   status: OrderStatus;
 }

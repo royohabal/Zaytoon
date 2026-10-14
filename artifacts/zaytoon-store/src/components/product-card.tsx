@@ -3,8 +3,10 @@ import type { Product } from '@workspace/api-client-react';
 import { ArrowUpRight } from 'lucide-react';
 import { FadeImage } from '@/lib/motion';
 import { resolveImageSource } from '@/lib/image-source';
+import { useCurrency } from '@/lib/currency';
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
+  const { formatBasePrice } = useCurrency();
   const image = product.images?.[0] || '/images/zaytoon-hero.jpg';
   const secondImage = product.images && product.images.length > 1 ? product.images[1] : null;
 
@@ -47,7 +49,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[#74766f]">{product.category}</p>
           </div>
           <p className="atelier-label shrink-0 pt-1" data-testid={`text-product-price-${product.id}`}>
-            ${product.price.toFixed(2)}
+            {formatBasePrice(product.price)}
           </p>
         </div>
       </Link>

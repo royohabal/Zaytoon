@@ -1,0 +1,22 @@
+Add elegant, smooth scroll-reveal animations throughout my existing Zaytoon Atelier ecommerce website.
+
+**Animation style:**
+- When the user scrolls down and a section, image, heading, paragraph, product card, or button enters the screen, it should gradually fade in while moving slightly upward into its original position.
+- Use a subtle upward movement of around 20–30 pixels and a smooth opacity transition from 0 to 1.
+- Animate product images, product cards, collection sections, headings, text, promotional banners, and other suitable visual elements.
+- For product grids, make the cards appear one after another with a small staggered delay for a premium, elegant effect.
+- Add a very subtle zoom-in effect to selected large images as they enter the viewport.
+- When the user scrolls further down, animations should feel natural and smooth, not distracting or overly dramatic.
+- Animate elements only when they enter the viewport, using the Intersection Observer API or an equivalent lightweight solution.
+- Avoid repeatedly replaying animations every time the user scrolls slightly up and down. Ideally, each element should animate once when it first appears.
+- Keep all animations lightweight and performant, with no unnecessary libraries if the project can achieve this with CSS and JavaScript.
+
+**Important requirements:**
+- Preserve the existing website design, colors, typography, layout, product images, product information, MongoDB connection, currency selector, cart, authentication, checkout, and My Orders functionality.
+- Do not make the entire page fade out. Only reveal individual elements as they enter the viewport.
+- Ensure animations work on desktop, tablets, and mobile devices.
+- Respect the user's reduced-motion accessibility preference by disabling or simplifying animations when requested by their device.
+- Avoid layout shifts, flickering, invisible content if JavaScript fails, and animations that interfere with clicking buttons or shopping.
+- Keep the first screen attractive and visible immediately; do not unnecessarily delay the hero section or navigation.
+
+Implement these changes directly in my existing codebase. After implementation, test scrolling through the homepage, collection pages, product details, and other relevant sections to confirm everything works correctly.

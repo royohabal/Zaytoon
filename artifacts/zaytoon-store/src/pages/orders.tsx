@@ -2,6 +2,7 @@ import { Link } from 'wouter';
 import { useGetMyOrders } from '@workspace/api-client-react';
 import { ErrorState, EmptyState, LoadingState } from '@/components/page-states';
 import { resolveImageSource } from '@/lib/image-source';
+import { formatCurrencyAmount } from '@/lib/currency';
 
 function isUnauthorized(error: unknown) {
   if (!error || typeof error !== 'object') {
@@ -53,7 +54,9 @@ export default function OrdersPage() {
                   ))}
                 </div>
               </div>
-              <p className="atelier-label sm:text-right" data-testid={`text-order-total-${order.id}`}>${order.total.toFixed(2)}</p>
+              <p className="atelier-label sm:text-right" data-testid={`text-order-total-${order.id}`}>
+                {formatCurrencyAmount(order.displayTotal, order.displayCurrency)}
+              </p>
             </article>
           ))}
         </div>

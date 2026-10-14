@@ -5,6 +5,7 @@ import { Link } from 'wouter';
 import { useClerk, useUser } from '@clerk/react';
 import { Menu, ShoppingBag, UserRound, X } from 'lucide-react';
 import { useCart } from '@/lib/cart';
+import { CurrencySelector } from '@/components/currency-selector';
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -69,6 +70,9 @@ export function Header() {
               <UserRound size={17} strokeWidth={1.35} />
               <span className="uppercase atelier-link">{isSignedIn ? 'Account' : 'Sign in'}</span>
             </Link>
+            <div className="hidden lg:block">
+              <CurrencySelector />
+            </div>
             <Link href="/cart" className="relative flex items-center gap-2" data-testid="link-cart">
               <ShoppingBag size={18} strokeWidth={1.35} />
               <span className="hidden text-[10px] font-medium tracking-[0.14em] sm:block">BAG</span>
@@ -90,6 +94,7 @@ export function Header() {
           >
           <nav className="border-t border-[#1c1c1a]/10 bg-[#fcf9f5] px-6 py-7 lg:hidden" aria-label="Mobile navigation">
             <div className="flex flex-col gap-6">
+              <CurrencySelector mobile />
               <Link href="/shop" onClick={closeMenu} className="atelier-heading text-2xl" data-testid="mobile-link-shop">
                 Shop the collection
               </Link>
@@ -152,7 +157,17 @@ export function Footer() {
         </div>
       </div>
       <div className="mx-auto flex max-w-[1440px] flex-col gap-3 border-t border-[#fcf9f5]/15 px-6 py-5 text-[10px] tracking-[0.12em] text-[#fcf9f5]/50 sm:flex-row sm:justify-between sm:px-10 lg:px-16">
-        <span>© {new Date().getFullYear()} Zaytoon Atelier</span>
+        <span>
+          © {new Date().getFullYear()} Zaytoon Atelier · Rates by{' '}
+          <a
+            href="https://www.exchangerate-api.com"
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2 hover:text-[#fcf9f5]"
+          >
+            ExchangeRate-API
+          </a>
+        </span>
         <span>MADE WITH MEMORY · DESIGNED FOR THE PRESENT</span>
       </div>
     </footer>

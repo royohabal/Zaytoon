@@ -185,9 +185,14 @@ export function FadeImage({ className = '', onLoad, onError, src, ...props }: Im
 /** Visually interpolates a currency value; the real value is always the prop. */
 export function AnimatedPrice({
   value,
+  formatValue,
   className,
   ...rest
-}: { value: number; className?: string } & Omit<HTMLAttributes<HTMLSpanElement>, 'children'>) {
+}: {
+  value: number;
+  formatValue?: (value: number) => string;
+  className?: string;
+} & Omit<HTMLAttributes<HTMLSpanElement>, 'children'>) {
   const reduce = useReducedMotion();
   const [shown, setShown] = useState(value);
   const latest = useRef(value);
@@ -209,7 +214,7 @@ export function AnimatedPrice({
   }, [value, reduce]);
   return (
     <span className={className} {...rest}>
-      ${(reduce ? value : shown).toFixed(2)}
+      {formatValue ? formatValue(reduce ? value : shown) : `$${(reduce ? value : shown).toFixed(2)}`}
     </span>
   );
 }

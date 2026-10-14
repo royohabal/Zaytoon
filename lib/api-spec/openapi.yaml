@@ -166,6 +166,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Exchange rates changed; review the updated amount before ordering
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Sign-in required
           content:
@@ -192,6 +198,9 @@ components:
           type: string
       required:
         - status
+    CurrencyCode:
+      type: string
+      enum: [KWD, USD, GBP, EUR, SAR]
     Product:
       type: object
       properties:
@@ -268,7 +277,13 @@ components:
           maxItems: 20
           items:
             $ref: "#/components/schemas/OrderLineInput"
-      required: [items]
+        displayCurrency:
+          $ref: "#/components/schemas/CurrencyCode"
+        exchangeRateDate:
+          type: ["string", "null"]
+          format: date-time
+          description: UTC date of the exchange rates used for display; null when USD is selected
+      required: [items, displayCurrency, exchangeRateDate]
     OrderLine:
       type: object
       properties:
@@ -301,10 +316,25 @@ components:
             $ref: "#/components/schemas/OrderLine"
         total:
           type: number
+          description: Immutable original order total in the base currency
+        baseCurrency:
+          $ref: "#/components/schemas/CurrencyCode"
+        displayCurrency:
+          $ref: "#/components/schemas/CurrencyCode"
+        displayTotal:
+          type: number
+          description: Immutable order total in the currency selected at checkout
+        exchangeRate:
+          type: number
+          description: Number of display-currency units per base-currency unit
+        exchangeRateDate:
+          type: ["string", "null"]
+          format: date-time
+          description: UTC date of the exchange rate saved with this order
         status:
           type: string
           enum: [received, preparing, shipped, delivered]
-      required: [id, orderNumber, createdAt, items, total, status]
+      required: [id, orderNumber, createdAt, items, total, baseCurrency, displayCurrency, displayTotal, exchangeRate, exchangeRateDate, status]
     ErrorResponse:
       type: object
       properties:

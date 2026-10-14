@@ -26,6 +26,7 @@ import {
   type StoredOrder,
   type StoredProduct,
 } from "../lib/mongodb";
+import { ExchangeRatesUnavailableError, getUsdExchangeRate } from "../lib/exchange-rates";
 
 const router: IRouter = Router();
 
@@ -51,6 +52,11 @@ function orderResponse(order: StoredOrder) {
     createdAt: order.createdAt,
     items: order.items,
     total: order.total,
+    baseCurrency: order.baseCurrency ?? "USD",
+    displayCurrency: order.displayCurrency ?? "USD",
+    displayTotal: order.displayTotal ?? order.total,
+    exchangeRate: order.exchangeRate ?? 1,
+    exchangeRateDate: order.exchangeRateDate ?? null,
     status: order.status,
   };
 }
@@ -172,6 +178,9 @@ async function createOrderRecord(
   session: ClientSession,
   userId: string,
   lines: Array<{ productId: string; size: string; quantity: number }>,
+  displayCurrency: CreateOrderBody["displayCurrency"],
+  exchangeRate: number,
+  exchangeRateDate: Date | null,
 ): Promise<StoredOrder> {
   const products = await getProductCollection();
   const orderItems: OrderRecord["items"] = [];
@@ -217,6 +226,11 @@ async function createOrderRecord(
     orderItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) *
       100,
   ) / 100;
+  const displayDecimals = displayCurrency === "KWD" ? 3 : 2;
+  const displayTotal =
+    Math.round(
+      total * exchangeRate * 10 ** displayDecimals,
+    ) / 10 ** displayDecimals;
   const createdAt = new Date();
   const orderNumber = `ZY-${createdAt
     .toISOString()
@@ -229,6 +243,11 @@ async function createOrderRecord(
     createdAt,
     items: orderItems,
     total,
+    baseCurrency: "USD",
+    displayCurrency,
+    displayTotal,
+    exchangeRate,
+    exchangeRateDate,
     status: "received",
   };
   const inserted = await orderCollection.insertOne(document, { session });
@@ -260,6 +279,39 @@ router.post("/orders", async (req, res): Promise<void> => {
     return;
   }
 
+  const displayCurrency = parsed.data.displayCurrency;
+  let exchangeRate = 1;
+  let exchangeRateDate: Date | null = null;
+  if (displayCurrency !== "USD") {
+    let quote: Awaited<ReturnType<typeof getUsdExchangeRate>>;
+    try {
+      quote = await getUsdExchangeRate(displayCurrency);
+    } catch (error) {
+      if (error instanceof ExchangeRatesUnavailableError) {
+        req.log.warn({ kind: "exchange-rates" }, "Currency rates unavailable for order");
+        res.status(503).json({
+          error: "Currency conversion is temporarily unavailable. Select USD or try again later.",
+        });
+        return;
+      }
+      throw error;
+    }
+
+    const requestedRateDate = parsed.data.exchangeRateDate;
+    if (
+      !requestedRateDate ||
+      !quote.updatedAt ||
+      new Date(requestedRateDate).getTime() !== quote.updatedAt.getTime()
+    ) {
+      res.status(409).json({
+        error: "Exchange rates have changed. Review the updated prices and try again.",
+      });
+      return;
+    }
+    exchangeRate = quote.rate;
+    exchangeRateDate = quote.updatedAt;
+  }
+
   try {
     const client = await getMongoClient();
     const session = client.startSession();
@@ -267,7 +319,14 @@ router.post("/orders", async (req, res): Promise<void> => {
 
     try {
       await session.withTransaction(async () => {
-        order = await createOrderRecord(session, userId, parsed.data.items);
+        order = await createOrderRecord(
+          session,
+          userId,
+          parsed.data.items,
+          displayCurrency,
+          exchangeRate,
+          exchangeRateDate,
+        );
       });
     } finally {
       await session.endSession();

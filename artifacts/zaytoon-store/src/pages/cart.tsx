@@ -5,11 +5,18 @@ import { useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Minus, Plus, Trash2 } from 'lucide-react';
 import { AnimatedPrice, EASE, Enter, FadeImage } from '@/lib/motion';
-import { getGetMyOrdersQueryKey, useCreateOrder } from '@workspace/api-client-react';
+import { getGetMyOrdersQueryKey, useCreateOrder, type CurrencyCode } from '@workspace/api-client-react';
 import { useCart } from '@/lib/cart';
+import { CURRENCY_RATES_QUERY_KEY, formatCurrencyAmount, useCurrency } from '@/lib/currency';
 import { EmptyState } from '@/components/page-states';
 
 function errorMessage(error: unknown) {
+  if (error && typeof error === 'object' && 'data' in error) {
+    const data = error.data;
+    if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') {
+      return data.error;
+    }
+  }
   if (error instanceof Error) {
     return error.message;
   }
@@ -18,10 +25,23 @@ function errorMessage(error: unknown) {
 
 export default function CartPage() {
   const { items, subtotal, updateQuantity, removeItem, clearCart } = useCart();
+  const {
+    currency,
+    effectiveCurrency,
+    rates,
+    canConvert,
+    convertBasePrice,
+    formatAmount,
+    refreshRates,
+  } = useCurrency();
   const { isSignedIn } = useUser();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  const [placedOrder, setPlacedOrder] = useState('');
+  const [placedOrder, setPlacedOrder] = useState<{
+    orderNumber: string;
+    displayTotal: number;
+    displayCurrency: CurrencyCode;
+  } | null>(null);
   const reduce = useReducedMotion();
   const pageMotion = {
     initial: reduce ? false as const : { opacity: 0 },
@@ -33,13 +53,31 @@ export default function CartPage() {
     mutation: {
       onSuccess: async (order) => {
         clearCart();
-        setPlacedOrder(order.orderNumber);
+        setPlacedOrder({
+          orderNumber: order.orderNumber,
+          displayTotal: order.displayTotal,
+          displayCurrency: order.displayCurrency,
+        });
         await queryClient.invalidateQueries({ queryKey: getGetMyOrdersQueryKey() });
+      },
+      onError: async (error) => {
+        if (
+          error &&
+          typeof error === 'object' &&
+          'status' in error &&
+          error.status === 409
+        ) {
+          await queryClient.invalidateQueries({ queryKey: CURRENCY_RATES_QUERY_KEY });
+        }
       },
     },
   });
 
-  const placeOrder = () => {
+  const placeOrder = async () => {
+    if (currency !== 'USD' && !canConvert) {
+      await refreshRates();
+      return;
+    }
     if (!isSignedIn) {
       setLocation('/sign-in');
       return;
@@ -51,6 +89,9 @@ export default function CartPage() {
           size: item.size,
           quantity: item.quantity,
         })),
+        displayCurrency: currency,
+        exchangeRateDate:
+          currency === 'USD' || !rates ? null : new Date(rates.updatedAt),
       },
     });
   };
@@ -60,7 +101,12 @@ export default function CartPage() {
       <AnimatePresence mode="wait"><motion.main key="received" {...pageMotion} className="mx-auto min-h-[60vh] max-w-[1440px] px-6 py-20 text-center sm:py-28" data-testid="status-order-created">
         <p className="atelier-label text-[#4a5844]">ORDER RECEIVED</p>
         <h1 className="atelier-heading mt-4 text-4xl sm:text-5xl">Your order has been received.</h1>
-        <p className="mt-4 text-sm text-[#66685f]">Your order number is <span className="font-medium text-[#1c1c1a]">{placedOrder}</span>.</p>
+        <p className="mt-4 text-sm text-[#66685f]">
+          Your order number is <span className="font-medium text-[#1c1c1a]">{placedOrder.orderNumber}</span>.
+        </p>
+        <p className="mt-3 text-sm text-[#66685f]" data-testid="text-order-confirmation-total">
+          Saved order total: {formatCurrencyAmount(placedOrder.displayTotal, placedOrder.displayCurrency)}
+        </p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <button type="button" onClick={() => setLocation('/orders')} className="bg-[#4a5844] px-7 py-4 atelier-label text-[#fcf9f5] hover:bg-[#1c1c1a]" data-testid="button-view-orders">VIEW MY ORDERS</button>
           <Link href="/shop" className="border border-[#1c1c1a] px-7 py-4 atelier-label hover:bg-[#4a5844] hover:text-[#fcf9f5]" data-testid="link-continue-shopping">CONTINUE EXPLORING</Link>
@@ -101,7 +147,11 @@ export default function CartPage() {
                     <Link href={`/products/${item.productId}`} className="atelier-heading text-xl sm:text-2xl" data-testid={`text-cart-product-${item.productId}`}>{item.name}</Link>
                     <p className="mt-2 text-xs text-[#66685f]">Size: {item.size}</p>
                   </div>
-                  <AnimatedPrice value={item.unitPrice * item.quantity} className="atelier-label whitespace-nowrap" />
+                  <AnimatedPrice
+                    value={convertBasePrice(item.unitPrice * item.quantity)}
+                    formatValue={(amount) => formatAmount(amount, effectiveCurrency)}
+                    className="atelier-label whitespace-nowrap"
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center border border-[#c5c8be]">
@@ -125,13 +175,17 @@ export default function CartPage() {
           <p className="atelier-label">ORDER SUMMARY</p>
           <div className="mt-6 flex justify-between border-b border-[#d8cab8] pb-4 text-sm">
             <span>Subtotal</span>
-            <AnimatedPrice value={subtotal} data-testid="text-cart-subtotal" />
+            <AnimatedPrice
+              value={convertBasePrice(subtotal)}
+              formatValue={(amount) => formatAmount(amount, effectiveCurrency)}
+              data-testid="text-cart-subtotal"
+            />
           </div>
           <div className="flex justify-between border-b border-[#d8cab8] py-4 text-sm">
             <span>Delivery</span>
             <span className="text-xs text-[#66685f]">Not included</span>
           </div>
-          <p className="mt-4 text-xs font-light leading-5 text-[#66685f]">This order records the item subtotal only. Delivery and online payment are not processed by this site.</p>
+          <p className="mt-4 text-xs font-light leading-5 text-[#66685f]">This order saves the item subtotal and selected currency. Delivery and online payment are not processed by this site.</p>
           <AnimatePresence>
           {createOrder.isError && (
             <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="mt-4 border-l-2 border-[#944931] bg-[#944931]/5 px-3 py-2 text-xs leading-5 text-[#77331d]" role="alert" data-testid="status-order-error">
@@ -142,11 +196,17 @@ export default function CartPage() {
           <button
             type="button"
             onClick={placeOrder}
-            disabled={createOrder.isPending}
-            className="mt-7 flex w-full items-center justify-center gap-3 bg-[#4a5844] px-5 py-4 atelier-label text-[#fcf9f5] transition-colors hover:bg-[#1c1c1a] disabled:cursor-wait disabled:opacity-70"
+            disabled={createOrder.isPending || (currency !== 'USD' && !canConvert)}
+            className="mt-7 flex w-full items-center justify-center gap-3 bg-[#4a5844] px-5 py-4 atelier-label text-[#fcf9f5] transition-colors hover:bg-[#1c1c1a] disabled:cursor-not-allowed disabled:opacity-70"
             data-testid="button-place-order"
           >
-            {createOrder.isPending ? 'PLACING YOUR ORDER…' : isSignedIn ? 'PLACE ORDER' : 'SIGN IN TO PLACE ORDER'}
+            {createOrder.isPending
+              ? 'PLACING YOUR ORDER…'
+              : currency !== 'USD' && !canConvert
+                ? 'CURRENCY RATES UNAVAILABLE'
+                : isSignedIn
+                  ? 'PLACE ORDER'
+                  : 'SIGN IN TO PLACE ORDER'}
             {!createOrder.isPending && <ArrowRight size={14} />}
           </button>
           <p className="mt-4 text-center text-[10px] leading-5 text-[#74766f]">Prices and availability are rechecked when your order is placed. Online payment is not enabled here.</p>

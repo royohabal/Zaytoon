@@ -6,6 +6,7 @@ import {
   type Document,
   type WithId,
 } from "mongodb";
+import type { CurrencyCode } from "@workspace/api-zod";
 
 export type ProductRecord = Document & {
   name: string;
@@ -34,6 +35,11 @@ export type OrderRecord = Document & {
   createdAt: Date;
   items: OrderLineRecord[];
   total: number;
+  baseCurrency?: CurrencyCode;
+  displayCurrency?: CurrencyCode;
+  displayTotal?: number;
+  exchangeRate?: number;
+  exchangeRateDate?: Date | null;
   status: "received" | "preparing" | "shipped" | "delivered";
 };
 

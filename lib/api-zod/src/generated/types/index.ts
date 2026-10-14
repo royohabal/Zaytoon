@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './currencyCode';
 export * from './errorResponse';
 export * from './getProductsParams';
 export * from './getProductsSort';

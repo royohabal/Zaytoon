@@ -9,6 +9,17 @@ export interface HealthStatus {
   status: string;
 }
 
+export type CurrencyCode = typeof CurrencyCode[keyof typeof CurrencyCode];
+
+
+export const CurrencyCode = {
+  KWD: 'KWD',
+  USD: 'USD',
+  GBP: 'GBP',
+  EUR: 'EUR',
+  SAR: 'SAR',
+} as const;
+
 export interface Product {
   id: string;
   name: string;
@@ -49,6 +60,12 @@ export interface OrderInput {
      * @maxItems 20
      */
   items: OrderLineInput[];
+  displayCurrency: CurrencyCode;
+  /**
+     * UTC date of the exchange rates used for display; null when USD is selected
+     * @nullable
+     */
+  exchangeRateDate: string | null;
 }
 
 export interface OrderLine {
@@ -75,7 +92,19 @@ export interface Order {
   orderNumber: string;
   createdAt: string;
   items: OrderLine[];
+  /** Immutable original order total in the base currency */
   total: number;
+  baseCurrency: CurrencyCode;
+  displayCurrency: CurrencyCode;
+  /** Immutable order total in the currency selected at checkout */
+  displayTotal: number;
+  /** Number of display-currency units per base-currency unit */
+  exchangeRate: number;
+  /**
+     * UTC date of the exchange rate saved with this order
+     * @nullable
+     */
+  exchangeRateDate: string | null;
   status: OrderStatus;
 }
 

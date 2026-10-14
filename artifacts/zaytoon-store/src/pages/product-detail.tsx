@@ -7,11 +7,13 @@ import { Check, ChevronDown, ChevronUp, Heart, Minus, Plus } from 'lucide-react'
 import { useGetProduct } from '@workspace/api-client-react';
 import { useCart } from '@/lib/cart';
 import { apiErrorMessage, ErrorState, LoadingState } from '@/components/page-states';
+import { useCurrency } from '@/lib/currency';
 
 export default function ProductDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
   const query = useGetProduct(id);
   const { addItem } = useCart();
+  const { formatBasePrice } = useCurrency();
   const [size, setSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -73,7 +75,7 @@ export default function ProductDetailPage() {
           <p className="atelier-label text-[#944931]">{product.category.toUpperCase()} · PALESTINIAN ROOTS</p>
           <h1 className="atelier-heading mt-3 text-4xl leading-tight sm:text-5xl" data-testid="text-product-name">{product.name}</h1>
           <div className="mt-5 flex items-center justify-between border-b border-[#d8cab8] pb-5">
-            <p className="atelier-label" data-testid="text-detail-price">${product.price.toFixed(2)}</p>
+            <p className="atelier-label" data-testid="text-detail-price">{formatBasePrice(product.price)}</p>
             <p className="text-xs text-[#74766f]">{available ? 'Available in the atelier' : 'Currently unavailable'}</p>
           </div>
           <p className="mt-6 text-sm font-light leading-7 text-[#55574f]" data-testid="text-product-description">

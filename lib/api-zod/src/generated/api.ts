@@ -115,7 +115,12 @@ export const GetMyOrdersResponseItem = zod.object({
   "quantity": zod.number().int(),
   "unitPrice": zod.number()
 })),
-  "total": zod.number(),
+  "total": zod.number().describe('Immutable original order total in the base currency'),
+  "baseCurrency": zod.enum(['KWD', 'USD', 'GBP', 'EUR', 'SAR']),
+  "displayCurrency": zod.enum(['KWD', 'USD', 'GBP', 'EUR', 'SAR']),
+  "displayTotal": zod.number().describe('Immutable order total in the currency selected at checkout'),
+  "exchangeRate": zod.number().describe('Number of display-currency units per base-currency unit'),
+  "exchangeRateDate": zod.coerce.date().nullable().describe('UTC date of the exchange rate saved with this order'),
   "status": zod.enum(['received', 'preparing', 'shipped', 'delivered'])
 })
 export const GetMyOrdersResponse = zod.array(GetMyOrdersResponseItem)
@@ -138,7 +143,9 @@ export const CreateOrderBody = zod.object({
   "productId": zod.string().min(createOrderBodyItemsItemProductIdMin).max(createOrderBodyItemsItemProductIdMax),
   "size": zod.string(),
   "quantity": zod.number().int().min(1).max(createOrderBodyItemsItemQuantityMax)
-})).min(1).max(createOrderBodyItemsMax)
+})).min(1).max(createOrderBodyItemsMax),
+  "displayCurrency": zod.enum(['KWD', 'USD', 'GBP', 'EUR', 'SAR']),
+  "exchangeRateDate": zod.coerce.date().nullable().describe('UTC date of the exchange rates used for display; null when USD is selected')
 })
 
 export const CreateOrderResponse = zod.object({
@@ -153,7 +160,12 @@ export const CreateOrderResponse = zod.object({
   "quantity": zod.number().int(),
   "unitPrice": zod.number()
 })),
-  "total": zod.number(),
+  "total": zod.number().describe('Immutable original order total in the base currency'),
+  "baseCurrency": zod.enum(['KWD', 'USD', 'GBP', 'EUR', 'SAR']),
+  "displayCurrency": zod.enum(['KWD', 'USD', 'GBP', 'EUR', 'SAR']),
+  "displayTotal": zod.number().describe('Immutable order total in the currency selected at checkout'),
+  "exchangeRate": zod.number().describe('Number of display-currency units per base-currency unit'),
+  "exchangeRateDate": zod.coerce.date().nullable().describe('UTC date of the exchange rate saved with this order'),
   "status": zod.enum(['received', 'preparing', 'shipped', 'delivered'])
 })
 
