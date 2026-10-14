@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { Enter } from '@/lib/motion';
+import { Reveal } from '@/lib/motion';
 import { useClerk, useUser } from '@clerk/react';
 import { ArrowRight, UserRound } from 'lucide-react';
 
@@ -22,7 +22,7 @@ export default function AccountPage() {
         <h1 className="atelier-heading mt-3 text-5xl sm:text-6xl">Account</h1>
       </div>
       <div className="grid gap-10 pt-10 lg:grid-cols-[300px_1fr] lg:gap-16">
-        <Enter><aside className="border border-[#d8cab8] bg-[#f6f3ef] p-6">
+        <Reveal><aside className="border border-[#d8cab8] bg-[#f6f3ef] p-6">
           <div className="flex h-14 w-14 items-center justify-center border border-[#4a5844] text-[#4a5844]">
             <UserRound size={22} strokeWidth={1.2} />
           </div>
@@ -35,8 +35,8 @@ export default function AccountPage() {
           <button type="button" onClick={() => signOut({ redirectUrl: import.meta.env.BASE_URL || '/' })} className="atelier-label mt-7 border-b border-[#1c1c1a] pb-1" data-testid="button-account-sign-out">
             SIGN OUT
           </button>
-        </aside></Enter>
-        <Enter delay={0.1}><div>
+        </aside></Reveal>
+        <Reveal delay={0.1}><div>
           <p className="atelier-label text-[#944931]">YOUR DETAILS</p>
           <h2 className="atelier-heading mt-3 text-3xl">Welcome back{user?.firstName ? `, ${user.firstName}` : ''}.</h2>
           <p className="mt-4 max-w-xl text-sm font-light leading-7 text-[#66685f]">
@@ -45,7 +45,7 @@ export default function AccountPage() {
           <Link href="/orders" className="mt-8 inline-flex items-center gap-3 border border-[#1c1c1a] px-6 py-4 atelier-label transition-colors hover:bg-[#4a5844] hover:text-[#fcf9f5]" data-testid="link-account-orders">
             VIEW ORDER HISTORY <ArrowRight size={14} />
           </Link>
-        </div></Enter>
+        </div></Reveal>
       </div>
     </main>
   );

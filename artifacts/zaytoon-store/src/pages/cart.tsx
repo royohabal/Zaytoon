@@ -4,7 +4,7 @@ import { useUser } from '@clerk/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Minus, Plus, Trash2 } from 'lucide-react';
-import { AnimatedPrice, EASE, Enter, FadeImage } from '@/lib/motion';
+import { AnimatedPrice, EASE, Enter, FadeImage, Reveal } from '@/lib/motion';
 import { getGetMyOrdersQueryKey, useCreateOrder, type CurrencyCode } from '@workspace/api-client-react';
 import { useCart } from '@/lib/cart';
 import { CURRENCY_RATES_QUERY_KEY, formatCurrencyAmount, useCurrency } from '@/lib/currency';
@@ -118,10 +118,10 @@ export default function CartPage() {
   if (!items.length) {
     return (
       <AnimatePresence mode="wait"><motion.main key="empty" {...pageMotion} className="mx-auto max-w-[1440px] px-6 py-12 sm:px-10">
-        <div className="border-b border-[#d8cab8] pb-7">
+        <Reveal className="border-b border-[#d8cab8] pb-7">
           <p className="atelier-label text-[#944931]">YOUR SELECTION</p>
           <h1 className="atelier-heading mt-3 text-5xl">The bag</h1>
-        </div>
+        </Reveal>
         <Enter><EmptyState title="Your bag is waiting." copy="Pieces chosen with care belong here. Take a look through the collection." /></Enter>
       </motion.main></AnimatePresence>
     );
@@ -129,15 +129,29 @@ export default function CartPage() {
 
   return (
     <AnimatePresence mode="wait"><motion.main key="bag" {...pageMotion} className="mx-auto min-h-[65vh] max-w-[1440px] px-5 pb-20 pt-10 sm:px-10 sm:pt-16 lg:px-16">
-      <div className="border-b border-[#d8cab8] pb-8">
+      <Reveal className="border-b border-[#d8cab8] pb-8">
         <p className="atelier-label text-[#944931]">YOUR SELECTION · {items.length} {items.length === 1 ? 'PIECE' : 'PIECES'}</p>
         <h1 className="atelier-heading mt-3 text-5xl sm:text-6xl">The bag</h1>
-      </div>
+      </Reveal>
       <div className="grid gap-10 pt-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-16">
         <div>
           <AnimatePresence>
-          {items.map((item) => (
-            <motion.article layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.35, ease: EASE }} key={`${item.productId}-${item.size}`} className="grid grid-cols-[100px_1fr] gap-4 border-b border-[#d8cab8] py-5 sm:grid-cols-[150px_1fr] sm:gap-6" data-testid={`row-cart-item-${item.productId}-${item.size}`}>
+          {items.map((item, index) => (
+            <motion.article
+              layout={reduce ? false : 'position'}
+              initial={reduce ? false : { opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.12, margin: '0px 0px -6% 0px' }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{
+                duration: reduce ? 0 : 0.72,
+                ease: EASE,
+                delay: reduce ? 0 : Math.min(index % 4, 3) * 0.08,
+              }}
+              key={`${item.productId}-${item.size}`}
+              className="grid grid-cols-[100px_1fr] gap-4 border-b border-[#d8cab8] py-5 sm:grid-cols-[150px_1fr] sm:gap-6"
+              data-testid={`row-cart-item-${item.productId}-${item.size}`}
+            >
               <Link href={`/products/${item.productId}`} className="product-image aspect-[4/5]" data-testid={`link-cart-product-${item.productId}`}>
                 <FadeImage src={item.image} alt={item.name} className="h-full w-full object-cover" />
               </Link>
@@ -172,7 +186,7 @@ export default function CartPage() {
             <ArrowRight size={13} className="rotate-180" /> Continue exploring
           </Link>
         </div>
-        <aside className="h-fit border border-[#d8cab8] bg-[#f6f3ef] p-5 sm:p-7">
+        <Reveal className="h-fit border border-[#d8cab8] bg-[#f6f3ef] p-5 sm:p-7">
           <p className="atelier-label">ORDER SUMMARY</p>
           <div className="mt-6 flex justify-between border-b border-[#d8cab8] pb-4 text-sm">
             <span>Subtotal</span>
@@ -212,7 +226,7 @@ export default function CartPage() {
             {!createOrder.isPending && <ArrowRight size={14} />}
           </button>
           <p className="mt-4 text-center text-[10px] leading-5 text-[#74766f]">Prices and availability are rechecked when your order is placed. Online payment is not enabled here.</p>
-        </aside>
+        </Reveal>
       </div>
     </motion.main></AnimatePresence>
   );

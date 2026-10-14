@@ -33,14 +33,14 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-[#1c1c1a]/65 via-[#1c1c1a]/18 to-transparent" />
         <div className="relative mx-auto flex min-h-[620px] max-w-[1600px] items-end px-6 pb-16 pt-24 sm:min-h-[680px] sm:px-10 sm:pb-20 lg:min-h-[min(760px,calc(100dvh-120px))] lg:items-center lg:px-16">
           <div className="max-w-[650px] text-[#fcf9f5]">
-            <p className="atelier-label reveal">PALESTINIAN ROOTS · CONTEMPORARY FORM</p>
-            <h1 className="atelier-heading reveal reveal-delay mt-5 text-[clamp(3rem,7.5vw,6.7rem)] leading-[0.99] tracking-[-0.04em]">
+            <p className="atelier-label">PALESTINIAN ROOTS · CONTEMPORARY FORM</p>
+            <h1 className="atelier-heading mt-5 text-[clamp(3rem,7.5vw,6.7rem)] leading-[0.99] tracking-[-0.04em]">
               Roots of the<br />olive grove.
             </h1>
-            <p className="reveal reveal-delay-2 mt-6 max-w-[420px] text-base font-light leading-7 text-[#fcf9f5]/85 sm:text-lg">
+            <p className="mt-6 max-w-[420px] text-base font-light leading-7 text-[#fcf9f5]/85 sm:text-lg">
               Modern silhouettes, shaped by the enduring art of Palestinian making.
             </p>
-            <div className="reveal reveal-delay-2 mt-9 flex flex-wrap gap-3">
+            <div className="mt-9 flex flex-wrap gap-3">
               <Link href="/shop" className="inline-flex items-center gap-3 bg-[#4a5844] px-7 py-4 atelier-label text-[#fcf9f5] transition-colors hover:bg-[#1c1c1a]" data-testid="link-hero-shop">
                 Shop now <ArrowRight size={15} />
               </Link>
@@ -76,7 +76,9 @@ export default function HomePage() {
         ) : featured.data?.length ? (
           <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-7 sm:gap-y-14 lg:grid-cols-4 lg:gap-x-8">
             {featured.data.slice(0, 4).map((product, index) => (
-              <ProductCard key={product.id} product={product} index={index} />
+              <Reveal key={product.id} delay={Math.min(index % 4, 3) * 0.08} className="h-full">
+                <ProductCard product={product} index={index} />
+              </Reveal>
             ))}
           </div>
         ) : (
@@ -158,7 +160,9 @@ export default function HomePage() {
           ) : arrivals.length ? (
             <div className="mt-9 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-7 sm:gap-y-14 lg:grid-cols-4 lg:gap-x-8">
               {arrivals.map((product, index) => (
-                <ProductCard key={product.id} product={product} index={index} />
+                <Reveal key={product.id} delay={Math.min(index % 4, 3) * 0.08} className="h-full">
+                  <ProductCard product={product} index={index} />
+                </Reveal>
               ))}
             </div>
           ) : (

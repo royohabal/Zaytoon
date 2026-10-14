@@ -12,8 +12,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
 
   return (
     <article
-      className="group reveal"
-      style={{ animationDelay: `${Math.min(index * 70, 350)}ms` }}
+      className="group"
       data-testid={`card-product-${product.id}`}
     >
       <Link href={`/products/${product.id}`} className="block" data-testid={`link-product-${product.id}`}>

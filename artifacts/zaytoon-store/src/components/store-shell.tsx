@@ -6,6 +6,7 @@ import { useClerk, useUser } from '@clerk/react';
 import { Menu, ShoppingBag, UserRound, X } from 'lucide-react';
 import { useCart } from '@/lib/cart';
 import { CurrencySelector } from '@/components/currency-selector';
+import { Reveal } from '@/lib/motion';
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -26,9 +27,6 @@ export function Header() {
 
   return (
     <>
-      <div className="bg-[#33412e] px-4 py-2 text-center text-[10px] font-medium tracking-[0.17em] text-[#fcf9f5] sm:text-[11px]">
-        MADE WITH MEMORY · DESIGNED FOR THE PRESENT
-      </div>
       <header className="sticky top-0 z-40 border-b border-[#1c1c1a]/10 bg-[#fcf9f5]/95 backdrop-blur-sm">
         <div className="mx-auto flex h-[76px] max-w-[1600px] items-center justify-between px-5 sm:px-8 lg:h-[88px] lg:px-12">
           <button
@@ -122,6 +120,7 @@ export function Footer() {
   const { signOut } = useClerk();
 
   return (
+    <Reveal>
     <footer className="bg-[#1c1c1a] text-[#fcf9f5]">
       <div className="mx-auto grid max-w-[1440px] gap-12 px-6 py-16 sm:grid-cols-2 sm:px-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:px-16 lg:py-20">
         <div>
@@ -171,6 +170,7 @@ export function Footer() {
         <span>MADE WITH MEMORY · DESIGNED FOR THE PRESENT</span>
       </div>
     </footer>
+    </Reveal>
   );
 }
 

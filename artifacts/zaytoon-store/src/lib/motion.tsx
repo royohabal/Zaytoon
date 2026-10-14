@@ -26,10 +26,10 @@ export function Reveal({ delay = 0, children, className, ...rest }: RevealProps)
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '0px 0px -8% 0px' }}
-      transition={{ duration: 0.7, ease: EASE, delay }}
+      viewport={{ once: true, amount: 0.12, margin: '0px 0px -6% 0px' }}
+      transition={{ duration: 0.72, ease: EASE, delay }}
     >
       {children}
     </motion.div>
@@ -45,10 +45,10 @@ export function RevealSection({ delay = 0, children, className, id }: RevealProp
     <motion.section
       id={id}
       className={className}
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.08 }}
-      transition={{ duration: 0.7, ease: EASE, delay }}
+      viewport={{ once: true, amount: 0.12, margin: '0px 0px -6% 0px' }}
+      transition={{ duration: 0.72, ease: EASE, delay }}
     >
       {children}
     </motion.section>
@@ -64,10 +64,10 @@ export function ImageReveal({ children, className }: { children: ReactNode; clas
   return (
     <motion.div
       className={className}
-      initial={{ clipPath: 'inset(10% 0% 0% 0%)', opacity: 0.4 }}
-      whileInView={{ clipPath: 'inset(0% 0% 0% 0%)', opacity: 1 }}
+      initial={{ clipPath: 'inset(8% 0% 0% 0%)', opacity: 0.45, y: 18, scale: 0.985 }}
+      whileInView={{ clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.95, ease: EASE }}
+      transition={{ duration: 0.9, ease: EASE }}
     >
       {children}
     </motion.div>
@@ -92,9 +92,6 @@ export function ParallaxImage({
       ref={ref}
       className={className}
       style={{ y, scale: 1 + (amount * 2) / 100 }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.9, ease: EASE }}
       {...(props as object)}
     />
   );

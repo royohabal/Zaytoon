@@ -3,6 +3,7 @@ import { useGetMyOrders } from '@workspace/api-client-react';
 import { ErrorState, EmptyState, LoadingState } from '@/components/page-states';
 import { resolveImageSource } from '@/lib/image-source';
 import { formatCurrencyAmount } from '@/lib/currency';
+import { Reveal } from '@/lib/motion';
 
 function isUnauthorized(error: unknown) {
   if (!error || typeof error !== 'object') {
@@ -17,10 +18,10 @@ export default function OrdersPage() {
 
   return (
     <main className="mx-auto min-h-[65vh] max-w-[1440px] px-5 pb-20 pt-10 sm:px-10 sm:pt-16 lg:px-16">
-      <div className="border-b border-[#d8cab8] pb-8">
+      <Reveal className="border-b border-[#d8cab8] pb-8">
         <p className="atelier-label text-[#944931]">YOUR ATELIER ARCHIVE</p>
         <h1 className="atelier-heading mt-3 text-5xl sm:text-6xl">Order history</h1>
-      </div>
+      </Reveal>
       {query.isLoading ? (
         <LoadingState label="Gathering your orders" />
       ) : query.isError && isUnauthorized(query.error) ? (
@@ -34,8 +35,9 @@ export default function OrdersPage() {
         <ErrorState onRetry={() => void query.refetch()} title="Your order archive is unavailable" />
       ) : query.data?.length ? (
         <div className="divide-y divide-[#d8cab8]">
-          {query.data.map((order) => (
-            <article key={order.id} className="grid gap-5 py-7 sm:grid-cols-[1fr_auto] sm:items-center" data-testid={`card-order-${order.id}`}>
+          {query.data.map((order, index) => (
+            <Reveal key={order.id} delay={Math.min(index % 4, 3) * 0.08}>
+            <article className="grid gap-5 py-7 sm:grid-cols-[1fr_auto] sm:items-center" data-testid={`card-order-${order.id}`}>
               <div>
                 <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
                   <h2 className="atelier-heading text-2xl">Order {order.orderNumber}</h2>
@@ -58,6 +60,7 @@ export default function OrdersPage() {
                 {formatCurrencyAmount(order.displayTotal, order.displayCurrency)}
               </p>
             </article>
+            </Reveal>
           ))}
         </div>
       ) : (

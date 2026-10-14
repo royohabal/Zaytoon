@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { EASE, FadeImage, ImageReveal } from '@/lib/motion';
+import { EASE, FadeImage, ImageReveal, Reveal } from '@/lib/motion';
 import { useParams, Link } from 'wouter';
 import { Check, ChevronDown, ChevronUp, Heart, Minus, Plus } from 'lucide-react';
 import { useGetProduct } from '@workspace/api-client-react';
@@ -56,13 +56,13 @@ export default function ProductDetailPage() {
 
   return (
     <main className="mx-auto max-w-[1440px] px-5 pb-20 pt-5 sm:px-10 sm:pt-8 lg:px-16">
-      <div className="mb-5 flex items-center gap-2 text-[10px] tracking-[0.12em] text-[#74766f]">
+      <Reveal className="mb-5 flex items-center gap-2 text-[10px] tracking-[0.12em] text-[#74766f]">
         <Link href="/" className="hover:text-[#4a5844]">HOME</Link>
         <span>/</span>
         <Link href="/shop" className="hover:text-[#4a5844]">COLLECTION</Link>
         <span>/</span>
         <span className="text-[#1c1c1a]">{product.name.toUpperCase()}</span>
-      </div>
+      </Reveal>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)] lg:gap-16">
         <div className="grid grid-cols-2 gap-3 sm:gap-5">
           {images.slice(0, 4).map((image, index) => (
@@ -71,7 +71,7 @@ export default function ProductDetailPage() {
             </ImageReveal>
           ))}
         </div>
-        <div className="lg:sticky lg:top-[130px] lg:self-start lg:py-4">
+        <Reveal className="lg:sticky lg:top-[130px] lg:self-start lg:py-4">
           <p className="atelier-label text-[#944931]">{product.category.toUpperCase()} · PALESTINIAN ROOTS</p>
           <h1 className="atelier-heading mt-3 text-4xl leading-tight sm:text-5xl" data-testid="text-product-name">{product.name}</h1>
           <div className="mt-5 flex items-center justify-between border-b border-[#d8cab8] pb-5">
@@ -154,7 +154,7 @@ export default function ProductDetailPage() {
             <p className="atelier-label text-[#4a5844]">A NOTE ON FIT</p>
             <p className="mt-2 text-xs leading-5 text-[#66685f]">Select your usual size. For a more relaxed silhouette, consider sizing up.</p>
           </div>
-        </div>
+        </Reveal>
       </div>
     </main>
   );

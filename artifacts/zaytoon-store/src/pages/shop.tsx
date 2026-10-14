@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Search, X } from 'lucide-react';
 import { getGetProductsQueryKey, useGetProducts, type GetProductsParams } from '@workspace/api-client-react';
 import { apiErrorMessage, ErrorState } from '@/components/page-states';
-import { EASE, ProductGridSkeleton } from '@/lib/motion';
+import { EASE, ProductGridSkeleton, Reveal } from '@/lib/motion';
 import { ProductCard } from '@/components/product-card';
 
 type SortValue = NonNullable<GetProductsParams['sort']>;
@@ -29,7 +29,7 @@ export default function ShopPage() {
 
   return (
     <main className="mx-auto min-h-[65vh] max-w-[1440px] px-5 pb-20 pt-10 sm:px-10 sm:pt-16 lg:px-16">
-      <div className="border-b border-[#d8cab8] pb-8">
+      <Reveal className="border-b border-[#d8cab8] pb-8">
         <p className="atelier-label text-[#944931]">ZAYTOON ATELIER · COLLECTION</p>
         <div className="mt-3 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <h1 className="atelier-heading text-5xl leading-[1.05] sm:text-6xl">Shop the pieces</h1>
@@ -37,8 +37,8 @@ export default function ShopPage() {
             Modern tailoring, rooted in Palestinian artistry. Find the piece that feels like yours.
           </p>
         </div>
-      </div>
-      <div className="flex flex-col gap-5 border-b border-[#d8cab8] py-5 sm:flex-row sm:items-center sm:justify-between">
+      </Reveal>
+      <Reveal delay={0.08} className="flex flex-col gap-5 border-b border-[#d8cab8] py-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by category">
           <button
             type="button"
@@ -94,13 +94,13 @@ export default function ShopPage() {
             </select>
           </label>
         </div>
-      </div>
-      <div className="flex items-center justify-between py-5">
+      </Reveal>
+      <Reveal delay={0.12} className="flex items-center justify-between py-5">
         <p className="atelier-label text-[#74766f]" data-testid="text-product-count">
           {query.isLoading ? 'CURATING' : `${products.length} ${products.length === 1 ? 'PIECE' : 'PIECES'}`}
         </p>
         {category && <button type="button" onClick={() => setCategory('')} className="atelier-label text-[#944931]" data-testid="button-clear-filter">CLEAR FILTER ×</button>}
-      </div>
+      </Reveal>
       {query.isLoading ? (
         <ProductGridSkeleton count={8} className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-7 sm:gap-y-14 lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4" />
       ) : query.isError ? (
@@ -115,10 +115,15 @@ export default function ShopPage() {
               <motion.div
                 key={product.id}
                 layout={reduce ? false : 'position'}
-                initial={reduce ? false : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={reduce ? false : { opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.12, margin: '0px 0px -6% 0px' }}
                 exit={{ opacity: 0, pointerEvents: 'none' }}
-                transition={{ duration: reduce ? 0 : 0.35, ease: EASE }}
+                transition={{
+                  duration: reduce ? 0 : 0.72,
+                  ease: EASE,
+                  delay: reduce ? 0 : Math.min(index % 4, 3) * 0.08,
+                }}
               >
                 <ProductCard product={product} index={index} />
               </motion.div>
