@@ -1,0 +1,28 @@
+Update my existing Zaytoon Atelier ecommerce website to support multiple currencies. **Do not redesign the website or remove any existing functionality.** Keep the current design, products, MongoDB Atlas database, cart, authentication, checkout/order flow, and My Orders page working.
+
+### 1. Currency selector
+- Set **Kuwaiti Dinar (KWD)** as the default currency.
+- Add a stylish currency selector in the website header, near the existing navigation or shopping cart.
+- Support these currencies: KWD (د.ك), USD ($), GBP (£), EUR (€), and SAR (ر.س).
+- Make the selector match the existing Zaytoon Atelier design and work on desktop and mobile.
+- Display the selected currency consistently across the entire store.
+
+### 2. Currency conversion
+- Keep all product prices in MongoDB stored in one canonical base currency, preferably KWD, and never overwrite the original stored prices when customers switch currencies.
+- Convert prices for display using reliable exchange-rate data from a currency conversion API.
+- Fetch exchange rates securely and cache them to avoid unnecessary API requests.
+- If live exchange rates are unavailable, show prices using the last successfully cached rates or clearly indicate that conversion rates are temporarily unavailable. Do not silently use random or outdated rates.
+- Format prices correctly for each currency, including the correct currency symbol and decimal places. KWD should use three decimal places.
+
+### 3. Apply the selected currency everywhere
+Update the currency display in:
+- Product cards and product detail pages.
+- Shopping cart and cart subtotal.
+- Checkout/order summary.
+- My Orders and order history.
+- Any product recommendations or featured products.
+
+### 4. Orders and database
+- Preserve the original product prices and canonical currency in MongoDB.
+- When an order is placed, store the original price, base currency, selected display currency, and the applicable exchange-rate snapshot where appropriate.
+- Make historical order totals consistent and prevent changing the

@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 import { useGetMyOrders } from '@workspace/api-client-react';
 import { ErrorState, EmptyState, LoadingState } from '@/components/page-states';
+import { resolveImageSource } from '@/lib/image-source';
 
 function isUnauthorized(error: unknown) {
   if (!error || typeof error !== 'object') {
@@ -43,7 +44,7 @@ export default function OrdersPage() {
                 <div className="mt-5 flex flex-wrap gap-3">
                   {order.items.map((item, index) => (
                     <div key={`${item.productId}-${item.size}-${index}`} className="flex items-center gap-3 border border-[#d8cab8] p-2" data-testid={`row-order-item-${order.id}-${index}`}>
-                      {item.image && <img src={item.image} alt="" className="h-16 w-12 object-cover" />}
+                      {item.image && <img src={resolveImageSource(item.image)} alt="" className="h-16 w-12 object-cover" />}
                       <div>
                         <p className="atelier-heading text-base">{item.name}</p>
                         <p className="mt-1 text-[10px] text-[#66685f]">SIZE {item.size} · QTY {item.quantity}</p>
