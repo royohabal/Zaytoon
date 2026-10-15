@@ -5,7 +5,7 @@ A contemporary Palestinian fashion storefront based on the user's imported Stitc
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server
-- `pnpm --filter @workspace/zaytoon-store run dev` — run the storefront
+- `pnpm --filter @workspace/zaytoon-store run dev` — run the Next.js storefront
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -16,10 +16,10 @@ A contemporary Palestinian fashion storefront based on the user's imported Stitc
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- API: Express 5 mounted inside the Next.js server under `/api`
 - Store DB: MongoDB Atlas via the MongoDB driver
 - Authentication: Clerk with backend identity verification and a same-project proxy
-- Frontend: React, Vite, Tailwind, Wouter, TanStack Query
+- Frontend: Next.js 15 App Router shell, React, Tailwind, Wouter, TanStack Query
 - Validation: generated Zod schemas
 - API codegen: Orval (from OpenAPI spec)
 - API build: esbuild
@@ -27,6 +27,7 @@ A contemporary Palestinian fashion storefront based on the user's imported Stitc
 ## Where things live
 
 - `artifacts/zaytoon-store` — storefront and public brand assets
+- `artifacts/zaytoon-store/src/store-pages` — client-rendered storefront screens
 - `artifacts/zaytoon-store/design-reference` — imported Stitch visual references
 - `artifacts/api-server/src/lib/mongodb.ts` — MongoDB connection, record shapes, and starter catalogue
 - `artifacts/api-server/src/routes/store.ts` — catalogue and protected order endpoints
@@ -38,6 +39,7 @@ A contemporary Palestinian fashion storefront based on the user's imported Stitc
 - The user explicitly requires MongoDB Atlas. The workspace's PostgreSQL scaffolding is not the storefront database.
 - Clerk owns password validation, hashing, and secure sessions. Do not store passwords in MongoDB or browser storage.
 - Orders derive ownership from the verified session, never a browser-supplied user ID.
+- The Next.js server handles the storefront and product/order API on the same service. The API artifact remains for Clerk's `/api/__clerk` proxy path.
 
 ## Product
 

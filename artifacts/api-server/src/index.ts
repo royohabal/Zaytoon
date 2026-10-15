@@ -1,5 +1,4 @@
-import app from "./app";
-import { logger } from "./lib/logger";
+import app, { logger } from "@workspace/store-api";
 
 const rawPort = process.env["PORT"];
 

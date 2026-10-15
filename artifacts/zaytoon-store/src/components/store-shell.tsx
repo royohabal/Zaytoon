@@ -54,7 +54,7 @@ export function Header() {
           </nav>
           <Link href="/" className="absolute left-1/2 -translate-x-1/2 text-center" data-testid="link-home-logo" aria-label="Zaytoon Atelier home">
             <img
-              src={zaytoonWordmark}
+              src={zaytoonWordmark.src}
               alt="Zaytoon"
               className="mx-auto h-auto w-[108px] object-contain sm:w-[124px]"
             />

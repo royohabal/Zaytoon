@@ -12,21 +12,21 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { Footer, Header } from '@/components/store-shell';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import AccountPage from '@/pages/account';
-import CartPage from '@/pages/cart';
-import HomePage from '@/pages/home';
-import NotFound from '@/pages/not-found';
-import OrdersPage from '@/pages/orders';
-import ProductDetailPage from '@/pages/product-detail';
-import ShopPage from '@/pages/shop';
+import AccountPage from '@/store-pages/account';
+import CartPage from '@/store-pages/cart';
+import HomePage from '@/store-pages/home';
+import NotFound from '@/store-pages/not-found';
+import OrdersPage from '@/store-pages/orders';
+import ProductDetailPage from '@/store-pages/product-detail';
+import ShopPage from '@/store-pages/shop';
 import { Redirect, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
 );
-const clerkProxyUrl = process.env.NEXT_PUBLIC_CLERK_PROXY_URL ?? '/api/__clerk';
-const basePath = '';
+const clerkProxyUrl = process.env.NEXT_PUBLIC_CLERK_PROXY_URL || undefined;
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 function stripBase(path: string): string {
   return basePath && path.startsWith(basePath)

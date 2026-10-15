@@ -58,7 +58,7 @@ export default function HomePage() {
       </section>
 
       <img
-        src={tatreezDivider}
+        src={tatreezDivider.src}
         alt=""
         aria-hidden="true"
         width={1905}
