@@ -15,7 +15,7 @@ export default function handler(
   const expressRequest = request as unknown as Parameters<typeof storeApi>[0];
   const expressResponse = response as unknown as Parameters<typeof storeApi>[1];
 
-  storeApi(expressRequest, expressResponse, (error) => {
+  storeApi(expressRequest, expressResponse, (error?: unknown) => {
     if (!error) return;
     logger.error({ err: error }, "Vercel API request failed");
     if (!response.headersSent) {
