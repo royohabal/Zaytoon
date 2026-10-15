@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter @workspace/store-api run build && NODE_ENV=development node server.mjs",
+    "dev": "pnpm --filter @workspace/store-api run build && next dev --hostname 0.0.0.0 --port $PORT",
     "build": "pnpm --filter @workspace/store-api run build && next build",
-    "start": "node server.mjs",
+    "start": "next start --hostname 0.0.0.0 --port $PORT",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {

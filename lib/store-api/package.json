@@ -8,6 +8,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "default": "./dist/index.mjs"
+    },
+    "./clerk": {
+      "types": "./dist/clerk.d.ts",
+      "import": "./dist/clerk.mjs",
+      "default": "./dist/clerk.mjs"
     }
   },
   "scripts": {

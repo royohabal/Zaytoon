@@ -70,7 +70,7 @@ function databaseError(req: Request, res: Response, error: unknown): void {
   res.status(503).json({
     error: configured
       ? "MongoDB Atlas is unavailable. Check the Atlas network access settings and database user."
-      : "MongoDB Atlas is not configured. Add MONGODB_URI in Replit Secrets.",
+      : "MongoDB Atlas is not configured. Set MONGODB_URI in the deployment environment.",
   });
 }
 

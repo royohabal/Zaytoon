@@ -35,7 +35,9 @@ function stripBase(path: string): string {
 }
 
 if (!clerkPubKey) {
-  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in Replit Secrets.');
+  throw new Error(
+    'Missing Clerk publishable key. Set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY or VITE_CLERK_PUBLISHABLE_KEY in the deployment environment.',
+  );
 }
 
 const clerkAppearance = {

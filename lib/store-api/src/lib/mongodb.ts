@@ -184,7 +184,7 @@ async function initializeDatabase(database: Db): Promise<void> {
 export async function getDatabase(): Promise<Db> {
   if (!process.env.MONGODB_URI) {
     throw new MongoConfigurationError(
-      "MongoDB Atlas is not configured. Add MONGODB_URI in Replit Secrets.",
+      "MongoDB Atlas is not configured. Set MONGODB_URI in the deployment environment.",
     );
   }
 
