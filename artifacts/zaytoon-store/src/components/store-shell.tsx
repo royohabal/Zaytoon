@@ -7,6 +7,7 @@ import { Menu, ShoppingBag, UserRound, X } from 'lucide-react';
 import { useCart } from '@/lib/cart';
 import { CurrencySelector } from '@/components/currency-selector';
 import { Reveal } from '@/lib/motion';
+import zaytoonWordmark from '@assets/zaytoon-wordmark.png';
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -51,10 +52,12 @@ export function Header() {
               The craft
             </a>
           </nav>
-          <Link href="/" className="absolute left-1/2 -translate-x-1/2 text-center" data-testid="link-home-logo">
-            <span className="atelier-heading block text-[25px] leading-none tracking-[-0.07em] sm:text-[29px]">
-              ZAYTOON
-            </span>
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2 text-center" data-testid="link-home-logo" aria-label="Zaytoon Atelier home">
+            <img
+              src={zaytoonWordmark}
+              alt="Zaytoon"
+              className="mx-auto h-auto w-[108px] object-contain sm:w-[124px]"
+            />
             <span className="mt-1 block text-[8px] font-medium tracking-[0.31em]">
               ATELIER
             </span>

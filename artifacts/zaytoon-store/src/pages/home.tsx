@@ -5,6 +5,7 @@ import { useGetFeaturedProducts, useGetProducts } from '@workspace/api-client-re
 import { ProductCard } from '@/components/product-card';
 import { apiErrorMessage, ErrorState } from '@/components/page-states';
 import { DrawIn, FadeImage, ImageReveal, ParallaxImage, ProductGridSkeleton, Reveal, RevealSection } from '@/lib/motion';
+import tatreezDivider from '@assets/image_1792079570823.png';
 
 export default function HomePage() {
   const featured = useGetFeaturedProducts();
@@ -50,14 +51,20 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 hidden h-[3px] opacity-70 sm:block">
-          <DrawIn className="h-full"><div className="tatreez-rule h-full" /></DrawIn>
-        </div>
         <div className="absolute bottom-7 right-8 hidden text-right text-[9px] tracking-[0.17em] text-white/80 lg:block">
           <span>01 — A LIVING ARCHIVE</span><br />
           <span className="mt-1 inline-block">BEIT JALA · PALESTINE</span>
         </div>
       </section>
+
+      <img
+        src={tatreezDivider}
+        alt=""
+        aria-hidden="true"
+        width={1905}
+        height={61}
+        className="block h-auto w-full"
+      />
 
       <RevealSection className="mx-auto max-w-[1440px] px-6 py-20 sm:px-10 sm:py-28 lg:px-16">
         <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">

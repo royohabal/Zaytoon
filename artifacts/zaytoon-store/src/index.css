@@ -146,12 +146,6 @@
   transform: scaleX(1);
 }
 
-.tatreez-rule {
-  background-image: repeating-linear-gradient(135deg, transparent 0 5px, #c26d53 5px 6px, transparent 6px 11px);
-  height: 1px;
-  opacity: 0.62;
-}
-
 .product-image {
   background: #e9e5de;
   overflow: hidden;
