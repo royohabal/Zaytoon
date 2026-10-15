@@ -32,7 +32,7 @@ export default function AccountPage() {
           <p className="mt-2 text-sm font-light text-[#66685f]" data-testid="text-account-email">
             {user?.primaryEmailAddress?.emailAddress}
           </p>
-          <button type="button" onClick={() => signOut({ redirectUrl: import.meta.env.BASE_URL || '/' })} className="atelier-label mt-7 border-b border-[#1c1c1a] pb-1" data-testid="button-account-sign-out">
+          <button type="button" onClick={() => signOut({ redirectUrl: '/' })} className="atelier-label mt-7 border-b border-[#1c1c1a] pb-1" data-testid="button-account-sign-out">
             SIGN OUT
           </button>
         </aside></Reveal>

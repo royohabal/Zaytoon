@@ -45,10 +45,10 @@ export function Header() {
             <Link href="/shop" className="atelier-label atelier-link text-[10px]" data-testid="link-shop">
               Shop
             </Link>
-            <a href={`${import.meta.env.BASE_URL}#story`} className="atelier-label atelier-link text-[10px]" data-testid="link-story">
+            <a href="/#story" className="atelier-label atelier-link text-[10px]" data-testid="link-story">
               Our story
             </a>
-            <a href={`${import.meta.env.BASE_URL}#craft`} className="atelier-label atelier-link text-[10px]" data-testid="link-craft">
+            <a href="/#craft" className="atelier-label atelier-link text-[10px]" data-testid="link-craft">
               The craft
             </a>
           </nav>
@@ -99,10 +99,10 @@ export function Header() {
               <Link href="/shop" onClick={closeMenu} className="atelier-heading text-2xl" data-testid="mobile-link-shop">
                 Shop the collection
               </Link>
-              <a href={`${import.meta.env.BASE_URL}#story`} onClick={closeMenu} className="atelier-heading text-2xl">
+              <a href="/#story" onClick={closeMenu} className="atelier-heading text-2xl">
                 Our story
               </a>
-              <a href={`${import.meta.env.BASE_URL}#craft`} onClick={closeMenu} className="atelier-heading text-2xl">
+              <a href="/#craft" onClick={closeMenu} className="atelier-heading text-2xl">
                 The craft
               </a>
               <Link href={isSignedIn ? '/account' : '/sign-in'} onClick={closeMenu} className="atelier-label pt-2" data-testid="mobile-link-account">
@@ -139,8 +139,8 @@ export function Footer() {
           <p className="atelier-label mb-5 text-[#d8cab8]">Explore</p>
           <div className="flex flex-col gap-3 text-sm font-light text-[#fcf9f5]/75">
             <Link href="/shop" className="atelier-link" data-testid="footer-link-shop">All pieces</Link>
-            <a href={`${import.meta.env.BASE_URL}#story`} className="atelier-link">Our story</a>
-            <a href={`${import.meta.env.BASE_URL}#craft`} className="atelier-link">Craft & roots</a>
+            <a href="/#story" className="atelier-link">Our story</a>
+            <a href="/#craft" className="atelier-link">Craft & roots</a>
           </div>
         </div>
         <div>
@@ -182,7 +182,7 @@ function SignOutLink({ signOut }: { signOut: ReturnType<typeof useClerk>['signOu
     <button
       type="button"
       className="atelier-link w-fit text-left"
-      onClick={() => signOut({ redirectUrl: import.meta.env.BASE_URL || '/' })}
+      onClick={() => signOut({ redirectUrl: '/' })}
       data-testid="button-sign-out"
     >
       Sign out

@@ -23,10 +23,10 @@ import { Redirect, Route, Switch, useLocation, Router as WouterRouter } from 'wo
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
 );
-const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+const clerkProxyUrl = process.env.NEXT_PUBLIC_CLERK_PROXY_URL ?? '/api/__clerk';
+const basePath = '';
 
 function stripBase(path: string): string {
   return basePath && path.startsWith(basePath)
@@ -35,7 +35,7 @@ function stripBase(path: string): string {
 }
 
 if (!clerkPubKey) {
-  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env file');
+  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in Replit Secrets.');
 }
 
 const clerkAppearance = {
