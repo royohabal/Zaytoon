@@ -23,6 +23,7 @@ import {
   getUsdExchangeRate,
 } from "../lib/exchange-rates";
 import { getTestStripeClient, StripeConfigurationError } from "../lib/stripe";
+import { checkoutErrorDiagnostics } from "../lib/checkout-diagnostics";
 
 const router: IRouter = Router();
 
@@ -266,9 +267,11 @@ router.post("/checkout/sessions", async (req, res): Promise<void> => {
   let draftId: ObjectId | null = null;
   let checkoutCollection: Awaited<ReturnType<typeof getCheckoutSessionCollection>> | null =
     null;
+  let operation = "load-product-catalog";
   try {
     const seenLines = new Set<string>();
     const products = await getProductCollection();
+    operation = "validate-cart-and-load-products";
     const snapshotItems: CheckoutSessionRecord["items"] = [];
     const stripeLines: Array<{
       price_data: {
@@ -350,6 +353,7 @@ router.post("/checkout/sessions", async (req, res): Promise<void> => {
     }
     const displayTotal = totalMinor / currencyScale(displayCurrency);
 
+    operation = "initialize-checkout-session-storage";
     checkoutCollection = await getCheckoutSessionCollection();
     draftId = new ObjectId();
     const draft: CheckoutSessionRecord = {
@@ -365,8 +369,10 @@ router.post("/checkout/sessions", async (req, res): Promise<void> => {
       exchangeRate,
       exchangeRateDate,
     };
+    operation = "save-checkout-draft";
     await checkoutCollection.insertOne(draft);
 
+    operation = "create-stripe-checkout-session";
     const session = await stripe.checkout.sessions.create(
       {
         mode: "payment",
@@ -378,18 +384,25 @@ router.post("/checkout/sessions", async (req, res): Promise<void> => {
       },
       { idempotencyKey: `zaytoon-checkout-${draftId.toHexString()}` },
     );
+    operation = "validate-stripe-checkout-session";
     if (!session.url) {
       throw new Error("Stripe did not return a Checkout URL.");
     }
 
+    operation = "save-stripe-session-reference";
     await checkoutCollection.updateOne(
       { _id: draftId, status: "creating" },
       { $set: { stripeSessionId: session.id, status: "pending" } },
     );
+    operation = "validate-checkout-response";
     res
       .status(201)
       .json(CreateCheckoutSessionResponse.parse({ url: session.url }));
   } catch (error) {
+    req.log.error(
+      checkoutErrorDiagnostics(error, operation),
+      "Stripe Checkout session could not be created",
+    );
     if (draftId && checkoutCollection) {
       await checkoutCollection
         .updateOne(
@@ -402,10 +415,6 @@ router.post("/checkout/sessions", async (req, res): Promise<void> => {
       databaseError(req, res, error);
       return;
     }
-    req.log.error(
-      { errorName: error instanceof Error ? error.name : "UnknownError" },
-      "Stripe Checkout session could not be created",
-    );
     res.status(503).json({
       error: "Stripe Checkout is temporarily unavailable. Please try again.",
     });
