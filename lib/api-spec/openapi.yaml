@@ -153,6 +153,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Stripe cannot accept the selected currency; choose another currency and review the total
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "503":
           description: Stripe, MongoDB, or exchange-rate service is unavailable
           content:

@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Minus, Plus, Trash2 } from 'lucide-react';
 import { AnimatedPrice, EASE, Enter, FadeImage, Reveal } from '@/lib/motion';
-import { useCreateCheckoutSession } from '@workspace/api-client-react';
+import { useCreateCheckoutSession, type CurrencyCode } from '@workspace/api-client-react';
 import { useCart } from '@/lib/cart';
 import { CURRENCY_RATES_QUERY_KEY, useCurrency } from '@/lib/currency';
 import { EmptyState } from '@/components/page-states';
@@ -27,6 +27,7 @@ export default function CartPage() {
   const { items, subtotal, updateQuantity, removeItem } = useCart();
   const {
     currency,
+    setCurrency,
     effectiveCurrency,
     rates,
     canConvert,
@@ -37,7 +38,12 @@ export default function CartPage() {
   const { isSignedIn } = useUser();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<{
+    message: string;
+    currency: CurrencyCode;
+    unsupportedCurrency: boolean;
+  } | null>(null);
+  const visibleCheckoutError = checkoutError?.currency === currency ? checkoutError : null;
   const reduce = useReducedMotion();
   const pageMotion = {
     initial: reduce ? false as const : { opacity: 0 },
@@ -79,7 +85,16 @@ export default function CartPage() {
       }
       window.location.assign(checkoutUrl.toString());
     } catch (error) {
-      setCheckoutError(errorMessage(error));
+      setCheckoutError({
+        message: errorMessage(error),
+        currency,
+        unsupportedCurrency:
+          Boolean(error) &&
+          typeof error === 'object' &&
+          error !== null &&
+          'status' in error &&
+          error.status === 422,
+      });
       if (
         error &&
         typeof error === 'object' &&
@@ -179,10 +194,23 @@ export default function CartPage() {
           </div>
           <p className="mt-4 text-xs font-light leading-5 text-[#66685f]">Prices and stock are verified from the catalogue. Secure payment is handled by Stripe in test mode; delivery is not included.</p>
           <AnimatePresence>
-          {checkoutError && (
-            <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="mt-4 border-l-2 border-[#944931] bg-[#944931]/5 px-3 py-2 text-xs leading-5 text-[#77331d]" role="alert" data-testid="status-order-error">
-              {checkoutError}
-            </motion.p>
+          {visibleCheckoutError && (
+            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="mt-4 border-l-2 border-[#944931] bg-[#944931]/5 px-3 py-2 text-xs leading-5 text-[#77331d]" role="alert" data-testid="status-order-error">
+              <p>{visibleCheckoutError.message}</p>
+              {visibleCheckoutError.unsupportedCurrency && currency !== 'USD' && (
+                <button
+                  type="button"
+                  className="mt-2 font-medium underline underline-offset-2 hover:text-[#1c1c1a]"
+                  onClick={() => {
+                    setCurrency('USD');
+                    setCheckoutError(null);
+                  }}
+                  data-testid="button-checkout-switch-usd"
+                >
+                  Switch to USD and review total
+                </button>
+              )}
+            </motion.div>
           )}
           </AnimatePresence>
           <button

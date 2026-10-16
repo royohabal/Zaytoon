@@ -22,7 +22,11 @@ import {
   ExchangeRatesUnavailableError,
   getUsdExchangeRate,
 } from "../lib/exchange-rates";
-import { getTestStripeClient, StripeConfigurationError } from "../lib/stripe";
+import {
+  getTestStripeClient,
+  isUnsupportedStripeCurrencyError,
+  StripeConfigurationError,
+} from "../lib/stripe";
 import { checkoutErrorDiagnostics } from "../lib/checkout-diagnostics";
 
 const router: IRouter = Router();
@@ -413,6 +417,12 @@ router.post("/checkout/sessions", async (req, res): Promise<void> => {
     }
     if (error instanceof MongoConfigurationError) {
       databaseError(req, res, error);
+      return;
+    }
+    if (isUnsupportedStripeCurrencyError(error)) {
+      res.status(422).json({
+        error: `Payment in ${displayCurrency} is unavailable for this store's Stripe account. Select a supported currency, such as USD, review the total, and try again.`,
+      });
       return;
     }
     res.status(503).json({

@@ -7,6 +7,13 @@ export class StripeConfigurationError extends Error {
   }
 }
 
+export function isUnsupportedStripeCurrencyError(error: unknown): boolean {
+  return (
+    error instanceof Stripe.errors.StripeInvalidRequestError &&
+    /^Invalid currency:/i.test(error.message)
+  );
+}
+
 export function getTestStripeClient(): Stripe {
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) {
