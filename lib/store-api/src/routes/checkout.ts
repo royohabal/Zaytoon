@@ -8,6 +8,7 @@ import {
 } from "@workspace/api-zod";
 import { ObjectId, type ClientSession } from "mongodb";
 import { Router, type IRouter, type Request, type Response } from "express";
+import type Stripe from "stripe";
 import {
   getCheckoutSessionCollection,
   getMongoClient,
@@ -28,15 +29,9 @@ import {
   StripeConfigurationError,
 } from "../lib/stripe";
 import { checkoutErrorDiagnostics } from "../lib/checkout-diagnostics";
+import { checkoutRequestOrigin, checkoutReturnUrls } from "../lib/checkout-url";
 
 const router: IRouter = Router();
-
-class CheckoutStockError extends Error {
-  constructor() {
-    super("A selected item is no longer available.");
-    this.name = "CheckoutStockError";
-  }
-}
 
 function currentUserId(req: Request, res: Response): string | null {
   const userId = getAuth(req).userId;
@@ -67,31 +62,13 @@ function stripeAmount(amount: number, currency: CurrencyCode): number {
 }
 
 function siteBaseUrl(req: Request): string {
-  const host =
-    process.env.VERCEL_ENV === "production"
-      ? process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL
-      : process.env.VERCEL_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
-
-  if (host) {
-    const url = new URL(host.includes("://") ? host : `https://${host}`);
-    if (url.protocol !== "https:") {
-      throw new Error("The configured Vercel storefront domain must use HTTPS.");
-    }
-    return url.origin;
-  }
-
-  // Local/dev preview only. Production uses Vercel's trusted system domain.
-  if (process.env.NODE_ENV !== "production") {
-    const origin = req.get("origin");
-    if (origin) {
-      const url = new URL(origin);
-      if (url.protocol === "https:" || url.hostname === "localhost") {
-        return url.origin;
-      }
-    }
-  }
-
-  throw new Error("Vercel system environment variables are required for Checkout URLs.");
+  return checkoutRequestOrigin({
+    forwardedHost: req.headers["x-forwarded-host"],
+    host: req.get("host"),
+    forwardedProto: req.headers["x-forwarded-proto"],
+    origin: req.get("origin"),
+    production: process.env.VERCEL_ENV === "production",
+  });
 }
 
 function absoluteHttpsImage(image: string): string | undefined {
@@ -204,6 +181,137 @@ async function createPaidOrder(
   return order;
 }
 
+export class CheckoutConfirmationError extends Error {
+  constructor(
+    readonly statusCode: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "CheckoutConfirmationError";
+  }
+}
+
+export class CheckoutStockError extends Error {
+  constructor() {
+    super("A selected item is no longer available.");
+    this.name = "CheckoutStockError";
+  }
+}
+
+export async function fulfillPaidCheckoutSession(
+  session: Stripe.Checkout.Session,
+  expectedUserId?: string,
+): Promise<StoredOrder> {
+  const userId = session.client_reference_id;
+  if (
+    !userId ||
+    (expectedUserId && userId !== expectedUserId) ||
+    !session.metadata?.checkoutId ||
+    !ObjectId.isValid(session.metadata.checkoutId)
+  ) {
+    throw new CheckoutConfirmationError(404, "The Checkout Session was not found.");
+  }
+  if (session.status !== "complete" || session.payment_status !== "paid") {
+    throw new CheckoutConfirmationError(
+      409,
+      "Stripe has not confirmed this payment yet.",
+    );
+  }
+
+  const checkoutCollection = await getCheckoutSessionCollection();
+  const draft = (await checkoutCollection.findOne({
+    _id: new ObjectId(session.metadata.checkoutId),
+    userId,
+    stripeSessionId: session.id,
+  })) as (CheckoutSessionRecord & { _id: ObjectId }) | null;
+  if (!draft) {
+    throw new CheckoutConfirmationError(404, "The Checkout Session was not found.");
+  }
+  if (
+    session.amount_total !== draft.totalMinor ||
+    session.currency !== draft.displayCurrency.toLowerCase()
+  ) {
+    throw new CheckoutConfirmationError(
+      400,
+      "The payment amount does not match this order.",
+    );
+  }
+
+  const orderCollection = await getOrderCollection();
+  const existingOrder = await orderCollection.findOne({
+    stripeCheckoutSessionId: session.id,
+    userId,
+  });
+  if (existingOrder) return existingOrder;
+  if (draft.status !== "pending") {
+    throw new CheckoutConfirmationError(
+      409,
+      "This Checkout Session can no longer be confirmed.",
+    );
+  }
+
+  const client = await getMongoClient();
+  const transaction = client.startSession();
+  let order: StoredOrder | null = null;
+  try {
+    await transaction.withTransaction(async () => {
+      order = await createPaidOrder(
+        transaction,
+        userId,
+        draft,
+        session.id,
+        paymentIntentId(session.payment_intent),
+      );
+    });
+  } catch (error) {
+    if (!isDuplicateKey(error)) throw error;
+  } finally {
+    await transaction.endSession();
+  }
+
+  if (!order) {
+    const concurrentlyCreated = await orderCollection.findOne({
+      stripeCheckoutSessionId: session.id,
+      userId,
+    });
+    if (!concurrentlyCreated) {
+      throw new Error("The paid order could not be saved. Please retry.");
+    }
+    order = concurrentlyCreated;
+  }
+  return order;
+}
+
+export async function refundUnavailablePaidCheckout(
+  session: Stripe.Checkout.Session,
+): Promise<string> {
+  const userId = session.client_reference_id;
+  if (!userId) {
+    throw new Error("The paid session is missing its order owner.");
+  }
+  const intentId = paymentIntentId(session.payment_intent);
+  if (!intentId) {
+    throw new Error("The paid session has no payment intent for refund.");
+  }
+  const refund = await getTestStripeClient().refunds.create(
+    {
+      payment_intent: intentId,
+      reason: "requested_by_customer",
+      metadata: { checkoutSessionId: session.id },
+    },
+    { idempotencyKey: `zaytoon-stock-refund-${session.id}` },
+  );
+  await (await getCheckoutSessionCollection()).updateOne(
+    {
+      stripeSessionId: session.id,
+      userId,
+      status: "pending",
+    },
+    { $set: { status: "refunded", refundId: refund.id } },
+  );
+  return refund.id;
+}
+
 router.post("/checkout/sessions", async (req, res): Promise<void> => {
   const userId = currentUserId(req, res);
   if (!userId) return;
@@ -263,7 +371,7 @@ router.post("/checkout/sessions", async (req, res): Promise<void> => {
     baseUrl = siteBaseUrl(req);
   } catch {
     res.status(503).json({
-      error: "Checkout needs the Vercel system environment variables enabled for this deployment.",
+      error: "Checkout could not determine the secure storefront hostname.",
     });
     return;
   }
@@ -382,8 +490,7 @@ router.post("/checkout/sessions", async (req, res): Promise<void> => {
         mode: "payment",
         client_reference_id: userId,
         line_items: stripeLines,
-        success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${baseUrl}/checkout/cancel`,
+        ...checkoutReturnUrls(baseUrl),
         metadata: { checkoutId: draftId.toHexString() },
       },
       { idempotencyKey: `zaytoon-checkout-${draftId.toHexString()}` },
@@ -452,114 +559,31 @@ router.post("/checkout/confirm", async (req, res): Promise<void> => {
     throw error;
   }
 
+  let session: Stripe.Checkout.Session | null = null;
+  let operation = "retrieve-stripe-checkout-session";
   try {
-    const session = await stripe.checkout.sessions.retrieve(
+    session = await stripe.checkout.sessions.retrieve(
       parsed.data.sessionId,
       { expand: ["payment_intent"] },
     );
-    if (
-      session.client_reference_id !== userId ||
-      !session.metadata?.checkoutId ||
-      !ObjectId.isValid(session.metadata.checkoutId)
-    ) {
-      res.status(404).json({ error: "The Checkout Session was not found." });
-      return;
-    }
-    if (session.status !== "complete" || session.payment_status !== "paid") {
-      res.status(409).json({ error: "Stripe has not confirmed this payment yet." });
-      return;
-    }
-
-    const checkoutCollection = await getCheckoutSessionCollection();
-    const draft = await checkoutCollection.findOne({
-      _id: new ObjectId(session.metadata.checkoutId),
-      userId,
-      stripeSessionId: session.id,
-    }) as (CheckoutSessionRecord & { _id: ObjectId }) | null;
-    if (!draft) {
-      res.status(404).json({ error: "The Checkout Session was not found." });
-      return;
-    }
-    if (
-      session.amount_total !== draft.totalMinor ||
-      session.currency !== draft.displayCurrency.toLowerCase()
-    ) {
-      res.status(400).json({ error: "The payment amount does not match this order." });
-      return;
-    }
-
-    const orderCollection = await getOrderCollection();
-    const existingOrder = await orderCollection.findOne({
-      stripeCheckoutSessionId: session.id,
-      userId,
-    });
-    if (existingOrder) {
-      res.json(ConfirmCheckoutSessionResponse.parse(orderResponse(existingOrder)));
-      return;
-    }
-    if (draft.status !== "pending") {
-      res.status(409).json({ error: "This Checkout Session can no longer be confirmed." });
-      return;
-    }
-
-    const client = await getMongoClient();
-    const transaction = client.startSession();
-    let order: StoredOrder | null = null;
-    try {
-      await transaction.withTransaction(async () => {
-        order = await createPaidOrder(
-          transaction,
-          userId,
-          draft,
-          session.id,
-          paymentIntentId(session.payment_intent),
-        );
-      });
-    } finally {
-      await transaction.endSession();
-    }
-
-    if (!order) {
-      const confirmedOrder = await orderCollection.findOne({
-        stripeCheckoutSessionId: session.id,
-        userId,
-      });
-      if (!confirmedOrder) {
-        res.status(503).json({ error: "The paid order could not be saved. Please retry." });
-        return;
-      }
-      order = confirmedOrder;
-    }
+    operation = "verify-paid-session-and-save-order";
+    const order = await fulfillPaidCheckoutSession(session, userId);
     res.json(ConfirmCheckoutSessionResponse.parse(orderResponse(order)));
   } catch (error) {
+    if (error instanceof CheckoutConfirmationError) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    }
     if (error instanceof CheckoutStockError) {
       try {
-        const intentId = paymentIntentId(
-          (await stripe.checkout.sessions.retrieve(parsed.data.sessionId, {
-            expand: ["payment_intent"],
-          })).payment_intent,
-        );
-        if (!intentId) {
-          throw new Error("The paid session has no payment intent for refund.");
-        }
-        const refund = await stripe.refunds.create(
-          {
-            payment_intent: intentId,
-            reason: "requested_by_customer",
-            metadata: { checkoutSessionId: parsed.data.sessionId },
-          },
-          { idempotencyKey: `zaytoon-stock-refund-${parsed.data.sessionId}` },
-        );
-        await (await getCheckoutSessionCollection()).updateOne(
-          { stripeSessionId: parsed.data.sessionId, userId, status: "pending" },
-          { $set: { status: "refunded", refundId: refund.id } },
-        );
+        if (!session) throw new Error("The Checkout Session could not be retrieved.");
+        await refundUnavailablePaidCheckout(session);
         res.status(409).json({
           error: "An item became unavailable during checkout. A refund has been started.",
         });
       } catch {
         req.log.error(
-          { checkoutSessionId: parsed.data.sessionId },
+          { operation: "refund-unavailable-checkout" },
           "A paid checkout could not be fulfilled or automatically refunded",
         );
         res.status(503).json({
@@ -572,22 +596,8 @@ router.post("/checkout/confirm", async (req, res): Promise<void> => {
       databaseError(req, res, error);
       return;
     }
-    if (isDuplicateKey(error)) {
-      try {
-        const duplicateOrder = await (await getOrderCollection()).findOne({
-          stripeCheckoutSessionId: parsed.data.sessionId,
-          userId,
-        });
-        if (duplicateOrder) {
-          res.json(ConfirmCheckoutSessionResponse.parse(orderResponse(duplicateOrder)));
-          return;
-        }
-      } catch {
-        // Fall through to the generic retry response.
-      }
-    }
     req.log.error(
-      { errorName: error instanceof Error ? error.name : "UnknownError" },
+      checkoutErrorDiagnostics(error, operation),
       "Stripe Checkout confirmation failed",
     );
     res.status(503).json({

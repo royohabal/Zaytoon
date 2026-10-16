@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { useUser } from '@clerk/react';
-import { useQueryClient } from '@tanstack/react-query';
-import { getGetMyOrdersQueryKey, useConfirmCheckoutSession } from '@workspace/api-client-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { confirmCheckoutSession, getGetMyOrdersQueryKey } from '@workspace/api-client-react';
 import { Enter, Reveal } from '@/lib/motion';
 import { useCart } from '@/lib/cart';
 import { formatCurrencyAmount } from '@/lib/currency';
@@ -25,25 +25,29 @@ export default function CheckoutSuccessPage() {
   const { clearCart } = useCart();
   const queryClient = useQueryClient();
   const started = useRef(false);
-  const confirmation = useConfirmCheckoutSession({
-    mutation: {
-      onSuccess: async () => {
-        clearCart();
-        await queryClient.invalidateQueries({ queryKey: getGetMyOrdersQueryKey() });
-      },
+  const confirmation = useMutation({
+    mutationFn: (id: string) =>
+      confirmCheckoutSession(
+        { sessionId: id },
+        { signal: AbortSignal.timeout(20_000) },
+      ),
+    onSuccess: () => {
+      clearCart();
+      void queryClient.invalidateQueries({ queryKey: getGetMyOrdersQueryKey() });
     },
   });
+
+  const confirmSession = useCallback(() => {
+    if (!sessionId) return;
+    confirmation.mutate(sessionId);
+  }, [confirmation.mutate, sessionId]);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !sessionId || started.current) return;
     started.current = true;
-    confirmation.mutate({ data: { sessionId } });
-  }, [confirmation.mutate, isLoaded, isSignedIn, sessionId]);
+    confirmSession();
+  }, [confirmSession, isLoaded, isSignedIn, sessionId]);
 
-  const retry = () => {
-    if (!sessionId) return;
-    confirmation.mutate({ data: { sessionId } });
-  };
   const order = confirmation.data;
 
   return (
@@ -51,7 +55,13 @@ export default function CheckoutSuccessPage() {
       <Reveal className="mx-auto max-w-2xl border-b border-[#d8cab8] pb-7 text-center">
         <p className="atelier-label text-[#4a5844]">ZAYTOON ATELIER · CHECKOUT</p>
         <h1 className="atelier-heading mt-4 text-4xl sm:text-5xl">
-          {order ? 'Payment received.' : 'Confirming your order.'}
+          {order
+            ? 'Payment received.'
+            : isLoaded && !isSignedIn
+              ? 'Sign-in needed to confirm.'
+              : confirmation.isError
+                ? 'We could not confirm your order yet.'
+                : 'Confirming your order.'}
         </h1>
       </Reveal>
 
@@ -65,7 +75,7 @@ export default function CheckoutSuccessPage() {
         ) : !isSignedIn ? (
           <>
             <p className="text-sm leading-6 text-[#66685f]">
-              Sign in to verify this payment and add it to your private order archive.
+              Your account session is not active on this hostname. Sign in to verify the Stripe payment and see whether the order was saved. Confirming will not charge you again.
             </p>
             <Link
               href={`/sign-in?redirect_url=${encodeURIComponent(`/checkout/success?session_id=${sessionId}`)}`}
@@ -84,7 +94,7 @@ export default function CheckoutSuccessPage() {
             </p>
             <button
               type="button"
-              onClick={retry}
+              onClick={confirmSession}
               className="mt-7 bg-[#4a5844] px-7 py-4 atelier-label text-[#fcf9f5] hover:bg-[#1c1c1a]"
               data-testid="button-retry-checkout-confirmation"
             >

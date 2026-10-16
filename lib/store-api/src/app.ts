@@ -4,6 +4,7 @@ import pinoHttp from "pino-http";
 import { clerkMiddleware } from "@clerk/express";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
 import router from "./routes";
+import { stripeWebhookHandler } from "./routes/stripe-webhook";
 import { logger } from "./lib/logger";
 import {
   CLERK_PROXY_PATH,
@@ -31,6 +32,11 @@ app.use(
       },
     },
   }),
+);
+app.post(
+  "/api/stripe/webhook",
+  express.raw({ type: "application/json", limit: "1mb" }),
+  stripeWebhookHandler,
 );
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 app.use(cors({ credentials: true, origin: true }));

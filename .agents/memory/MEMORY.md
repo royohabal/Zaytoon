@@ -1,3 +1,4 @@
 - [Vite dependency cache](vite-dependency-cache.md) — a workflow restart may retain stale React bundles after dependency changes; inspect runtime versions before changing app code.
 - [Zaytoon live stack](zaytoon-live-stack.md) — preserve the existing MongoDB and Clerk setup when older project guidance describes a different stack.
 - [Stripe currency support](stripe-currency-support.md) — the configured test account rejects KWD; display currencies must not silently become different payment currencies.
+- [Checkout return and fulfillment](stripe-checkout-reliability.md) — keep Stripe returns on the authenticated host and fulfill paid sessions through signed, idempotent webhooks.
