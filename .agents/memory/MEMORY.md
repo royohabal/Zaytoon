@@ -1,1 +1,2 @@
 - [Vite dependency cache](vite-dependency-cache.md) — a workflow restart may retain stale React bundles after dependency changes; inspect runtime versions before changing app code.
+- [Zaytoon live stack](zaytoon-live-stack.md) — preserve the existing MongoDB and Clerk setup when older project guidance describes a different stack.

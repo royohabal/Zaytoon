@@ -5,9 +5,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Minus, Plus, Trash2 } from 'lucide-react';
 import { AnimatedPrice, EASE, Enter, FadeImage, Reveal } from '@/lib/motion';
-import { getGetMyOrdersQueryKey, useCreateOrder, type CurrencyCode } from '@workspace/api-client-react';
+import { useCreateCheckoutSession } from '@workspace/api-client-react';
 import { useCart } from '@/lib/cart';
-import { CURRENCY_RATES_QUERY_KEY, formatCurrencyAmount, useCurrency } from '@/lib/currency';
+import { CURRENCY_RATES_QUERY_KEY, useCurrency } from '@/lib/currency';
 import { EmptyState } from '@/components/page-states';
 
 function errorMessage(error: unknown) {
@@ -20,11 +20,11 @@ function errorMessage(error: unknown) {
   if (error instanceof Error) {
     return error.message;
   }
-  return 'We could not place this order. Please try again.';
+  return 'We could not start secure checkout. Please try again.';
 }
 
 export default function CartPage() {
-  const { items, subtotal, updateQuantity, removeItem, clearCart } = useCart();
+  const { items, subtotal, updateQuantity, removeItem } = useCart();
   const {
     currency,
     effectiveCurrency,
@@ -37,11 +37,7 @@ export default function CartPage() {
   const { isSignedIn } = useUser();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  const [placedOrder, setPlacedOrder] = useState<{
-    orderNumber: string;
-    displayTotal: number;
-    displayCurrency: CurrencyCode;
-  } | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const reduce = useReducedMotion();
   const pageMotion = {
     initial: reduce ? false as const : { opacity: 0 },
@@ -49,31 +45,10 @@ export default function CartPage() {
     exit: { opacity: 0, pointerEvents: 'none' as const },
     transition: { duration: reduce ? 0 : 0.25 },
   };
-  const createOrder = useCreateOrder({
-    mutation: {
-      onSuccess: async (order) => {
-        clearCart();
-        setPlacedOrder({
-          orderNumber: order.orderNumber,
-          displayTotal: order.displayTotal,
-          displayCurrency: order.displayCurrency,
-        });
-        await queryClient.invalidateQueries({ queryKey: getGetMyOrdersQueryKey() });
-      },
-      onError: async (error) => {
-        if (
-          error &&
-          typeof error === 'object' &&
-          'status' in error &&
-          error.status === 409
-        ) {
-          await queryClient.invalidateQueries({ queryKey: CURRENCY_RATES_QUERY_KEY });
-        }
-      },
-    },
-  });
+  const createCheckoutSession = useCreateCheckoutSession();
 
-  const placeOrder = async () => {
+  const startCheckout = async () => {
+    setCheckoutError(null);
     if (currency !== 'USD' && !canConvert) {
       await refreshRates();
       return;
@@ -82,8 +57,9 @@ export default function CartPage() {
       setLocation('/sign-in');
       return;
     }
-    createOrder.mutate({
-      data: {
+    try {
+      const checkout = await createCheckoutSession.mutateAsync({
+        data: {
         items: items.map((item) => ({
           productId: item.productId,
           size: item.size,
@@ -92,28 +68,28 @@ export default function CartPage() {
         displayCurrency: currency,
         exchangeRateDate:
           currency === 'USD' || !rates ? null : rates.updatedAt,
-      },
-    });
+        },
+      });
+      const checkoutUrl = new URL(checkout.url);
+      if (
+        checkoutUrl.protocol !== 'https:' ||
+        checkoutUrl.hostname !== 'checkout.stripe.com'
+      ) {
+        throw new Error('Stripe returned an invalid checkout URL.');
+      }
+      window.location.assign(checkoutUrl.toString());
+    } catch (error) {
+      setCheckoutError(errorMessage(error));
+      if (
+        error &&
+        typeof error === 'object' &&
+        'status' in error &&
+        error.status === 409
+      ) {
+        await queryClient.invalidateQueries({ queryKey: CURRENCY_RATES_QUERY_KEY });
+      }
+    }
   };
-
-  if (placedOrder) {
-    return (
-      <AnimatePresence mode="wait"><motion.main key="received" {...pageMotion} className="mx-auto min-h-[60vh] max-w-[1440px] px-6 py-20 text-center sm:py-28" data-testid="status-order-created">
-        <p className="atelier-label text-[#4a5844]">ORDER RECEIVED</p>
-        <h1 className="atelier-heading mt-4 text-4xl sm:text-5xl">Your order has been received.</h1>
-        <p className="mt-4 text-sm text-[#66685f]">
-          Your order number is <span className="font-medium text-[#1c1c1a]">{placedOrder.orderNumber}</span>.
-        </p>
-        <p className="mt-3 text-sm text-[#66685f]" data-testid="text-order-confirmation-total">
-          Saved order total: {formatCurrencyAmount(placedOrder.displayTotal, placedOrder.displayCurrency)}
-        </p>
-        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <button type="button" onClick={() => setLocation('/orders')} className="bg-[#4a5844] px-7 py-4 atelier-label text-[#fcf9f5] hover:bg-[#1c1c1a]" data-testid="button-view-orders">VIEW MY ORDERS</button>
-          <Link href="/shop" className="border border-[#1c1c1a] px-7 py-4 atelier-label hover:bg-[#4a5844] hover:text-[#fcf9f5]" data-testid="link-continue-shopping">CONTINUE EXPLORING</Link>
-        </div>
-      </motion.main></AnimatePresence>
-    );
-  }
 
   if (!items.length) {
     return (
@@ -201,31 +177,31 @@ export default function CartPage() {
             <span>Delivery</span>
             <span className="text-xs text-[#66685f]">Not included</span>
           </div>
-          <p className="mt-4 text-xs font-light leading-5 text-[#66685f]">This order saves the item subtotal and selected currency. Delivery and online payment are not processed by this site.</p>
+          <p className="mt-4 text-xs font-light leading-5 text-[#66685f]">Prices and stock are verified from the catalogue. Secure payment is handled by Stripe in test mode; delivery is not included.</p>
           <AnimatePresence>
-          {createOrder.isError && (
+          {checkoutError && (
             <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="mt-4 border-l-2 border-[#944931] bg-[#944931]/5 px-3 py-2 text-xs leading-5 text-[#77331d]" role="alert" data-testid="status-order-error">
-              {errorMessage(createOrder.error)}
+              {checkoutError}
             </motion.p>
           )}
           </AnimatePresence>
           <button
             type="button"
-            onClick={placeOrder}
-            disabled={createOrder.isPending || (currency !== 'USD' && !canConvert)}
+            onClick={startCheckout}
+            disabled={createCheckoutSession.isPending || (currency !== 'USD' && !canConvert)}
             className="mt-7 flex w-full items-center justify-center gap-3 bg-[#4a5844] px-5 py-4 atelier-label text-[#fcf9f5] transition-colors hover:bg-[#1c1c1a] disabled:cursor-not-allowed disabled:opacity-70"
             data-testid="button-place-order"
           >
-            {createOrder.isPending
-              ? 'PLACING YOUR ORDER…'
+            {createCheckoutSession.isPending
+              ? 'PREPARING SECURE CHECKOUT…'
               : currency !== 'USD' && !canConvert
                 ? 'CURRENCY RATES UNAVAILABLE'
                 : isSignedIn
-                  ? 'PLACE ORDER'
-                  : 'SIGN IN TO PLACE ORDER'}
-            {!createOrder.isPending && <ArrowRight size={14} />}
+                  ? 'PAY SECURELY WITH STRIPE'
+                  : 'SIGN IN TO CHECK OUT'}
+            {!createCheckoutSession.isPending && <ArrowRight size={14} />}
           </button>
-          <p className="mt-4 text-center text-[10px] leading-5 text-[#74766f]">Prices and availability are rechecked when your order is placed. Online payment is not enabled here.</p>
+          <p className="mt-4 text-center text-[10px] leading-5 text-[#74766f]">Checkout is in test mode. No live payments are enabled.</p>
         </Reveal>
       </div>
     </motion.main></AnimatePresence>

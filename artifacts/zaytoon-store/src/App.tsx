@@ -14,6 +14,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import AccountPage from '@/store-pages/account';
 import CartPage from '@/store-pages/cart';
+import CheckoutCancelPage from '@/store-pages/checkout-cancel';
+import CheckoutSuccessPage from '@/store-pages/checkout-success';
 import HomePage from '@/store-pages/home';
 import NotFound from '@/store-pages/not-found';
 import OrdersPage from '@/store-pages/orders';
@@ -152,6 +154,14 @@ function CartRoute() {
   return <StoreLayout><CartPage /></StoreLayout>;
 }
 
+function CheckoutSuccessRoute() {
+  return <StoreLayout><CheckoutSuccessPage /></StoreLayout>;
+}
+
+function CheckoutCancelRoute() {
+  return <StoreLayout><CheckoutCancelPage /></StoreLayout>;
+}
+
 function AccountRoute() {
   return <ProtectedPage><AccountPage /></ProtectedPage>;
 }
@@ -229,6 +239,8 @@ function ClerkRoutes() {
         <Route path="/shop" component={ShopRoute} />
         <Route path="/products/:id" component={ProductRoute} />
         <Route path="/cart" component={CartRoute} />
+        <Route path="/checkout/success" component={CheckoutSuccessRoute} />
+        <Route path="/checkout/cancel" component={CheckoutCancelRoute} />
         <Route path="/account" component={AccountRoute} />
         <Route path="/orders" component={OrdersRoute} />
         <Route path="/sign-in/*?" component={SignInPage} />
