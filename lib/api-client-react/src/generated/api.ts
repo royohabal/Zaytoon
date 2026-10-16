@@ -20,6 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CheckoutConfirmationInput,
+  CheckoutSessionResponse,
   ErrorResponse,
   GetProductsParams,
   HealthStatus,
@@ -371,6 +373,182 @@ export function useGetProduct<TData = Awaited<ReturnType<typeof getProduct>>, TE
 
 
 
+
+export const getCreateCheckoutSessionUrl = () => {
+
+
+
+
+  return `/api/checkout/sessions`
+}
+
+/**
+ * @summary Create a test-mode Stripe Checkout Session for the signed-in customer's cart
+ */
+export const createCheckoutSession = async (orderInput: OrderInput, options?: Parameters<typeof customFetch>[1]): Promise<CheckoutSessionResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CheckoutSessionResponse>(getCreateCheckoutSessionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(orderInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCheckoutSessionMutationKey = () => ['createCheckoutSession'] as const;
+
+export const getCreateCheckoutSessionMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCheckoutSession>>, TError,CreateCheckoutSessionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCheckoutSession>>, TError,CreateCheckoutSessionMutationVariables, TContext> => {
+
+const mutationKey = getCreateCheckoutSessionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCheckoutSession>>, CreateCheckoutSessionMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCheckoutSession(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCheckoutSessionMutationResult = NonNullable<Awaited<ReturnType<typeof createCheckoutSession>>>
+    export type CreateCheckoutSessionMutationBody = BodyType<OrderInput>
+    export type CreateCheckoutSessionMutationError = ErrorType<ErrorResponse>
+    export type CreateCheckoutSessionMutationVariables = {data: BodyType<OrderInput>}
+
+    /**
+ * @summary Create a test-mode Stripe Checkout Session for the signed-in customer's cart
+ */
+export const useCreateCheckoutSession = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCheckoutSession>>, TError,CreateCheckoutSessionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCheckoutSession>>,
+        TError,
+        CreateCheckoutSessionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateCheckoutSessionMutationOptions(options));
+    }
+
+export const getConfirmCheckoutSessionUrl = () => {
+
+
+
+
+  return `/api/checkout/confirm`
+}
+
+/**
+ * @summary Verify a paid Stripe Checkout Session and record the order
+ */
+export const confirmCheckoutSession = async (checkoutConfirmationInput: CheckoutConfirmationInput, options?: Parameters<typeof customFetch>[1]): Promise<Order> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<Order>(getConfirmCheckoutSessionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(checkoutConfirmationInput)
+  }
+);}
+
+
+
+
+
+export const getConfirmCheckoutSessionMutationKey = () => ['confirmCheckoutSession'] as const;
+
+export const getConfirmCheckoutSessionMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmCheckoutSession>>, TError,ConfirmCheckoutSessionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmCheckoutSession>>, TError,ConfirmCheckoutSessionMutationVariables, TContext> => {
+
+const mutationKey = getConfirmCheckoutSessionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmCheckoutSession>>, ConfirmCheckoutSessionMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  confirmCheckoutSession(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmCheckoutSessionMutationResult = NonNullable<Awaited<ReturnType<typeof confirmCheckoutSession>>>
+    export type ConfirmCheckoutSessionMutationBody = BodyType<CheckoutConfirmationInput>
+    export type ConfirmCheckoutSessionMutationError = ErrorType<ErrorResponse>
+    export type ConfirmCheckoutSessionMutationVariables = {data: BodyType<CheckoutConfirmationInput>}
+
+    /**
+ * @summary Verify a paid Stripe Checkout Session and record the order
+ */
+export const useConfirmCheckoutSession = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmCheckoutSession>>, TError,ConfirmCheckoutSessionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof confirmCheckoutSession>>,
+        TError,
+        ConfirmCheckoutSessionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmCheckoutSessionMutationOptions(options));
+    }
 
 export const getGetMyOrdersUrl = () => {
 

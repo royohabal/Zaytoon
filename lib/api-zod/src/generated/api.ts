@@ -101,6 +101,67 @@ export const GetProductResponse = zod.object({
 
 
 /**
+ * @summary Create a test-mode Stripe Checkout Session for the signed-in customer's cart
+ */
+export const createCheckoutSessionBodyItemsItemProductIdMin = 24;
+export const createCheckoutSessionBodyItemsItemProductIdMax = 24;
+
+export const createCheckoutSessionBodyItemsItemQuantityMax = 10;
+
+export const createCheckoutSessionBodyItemsMax = 20;
+
+
+
+export const CreateCheckoutSessionBody = zod.object({
+  "items": zod.array(zod.object({
+  "productId": zod.string().min(createCheckoutSessionBodyItemsItemProductIdMin).max(createCheckoutSessionBodyItemsItemProductIdMax),
+  "size": zod.string(),
+  "quantity": zod.number().int().min(1).max(createCheckoutSessionBodyItemsItemQuantityMax)
+})).min(1).max(createCheckoutSessionBodyItemsMax),
+  "displayCurrency": zod.enum(['KWD', 'USD', 'GBP', 'EUR', 'SAR']),
+  "exchangeRateDate": zod.coerce.date().nullable().describe('UTC date of the exchange rates used for display; null when USD is selected')
+})
+
+export const CreateCheckoutSessionResponse = zod.object({
+  "url": zod.string().url()
+})
+
+
+/**
+ * @summary Verify a paid Stripe Checkout Session and record the order
+ */
+export const confirmCheckoutSessionBodySessionIdMin = 10;
+export const confirmCheckoutSessionBodySessionIdMax = 255;
+
+
+
+export const ConfirmCheckoutSessionBody = zod.object({
+  "sessionId": zod.string().min(confirmCheckoutSessionBodySessionIdMin).max(confirmCheckoutSessionBodySessionIdMax)
+})
+
+export const ConfirmCheckoutSessionResponse = zod.object({
+  "id": zod.string(),
+  "orderNumber": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "items": zod.array(zod.object({
+  "productId": zod.string(),
+  "name": zod.string(),
+  "image": zod.string(),
+  "size": zod.string(),
+  "quantity": zod.number().int(),
+  "unitPrice": zod.number()
+})),
+  "total": zod.number().describe('Immutable original order total in the base currency'),
+  "baseCurrency": zod.enum(['KWD', 'USD', 'GBP', 'EUR', 'SAR']),
+  "displayCurrency": zod.enum(['KWD', 'USD', 'GBP', 'EUR', 'SAR']),
+  "displayTotal": zod.number().describe('Immutable order total in the currency selected at checkout'),
+  "exchangeRate": zod.number().describe('Number of display-currency units per base-currency unit'),
+  "exchangeRateDate": zod.coerce.date().nullable().describe('UTC date of the exchange rate saved with this order'),
+  "status": zod.enum(['received', 'preparing', 'shipped', 'delivered'])
+})
+
+
+/**
  * @summary Get the signed-in customer's orders
  */
 export const GetMyOrdersResponseItem = zod.object({

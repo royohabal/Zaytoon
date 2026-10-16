@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './checkoutConfirmationInput';
+export * from './checkoutSessionResponse';
 export * from './currencyCode';
 export * from './errorResponse';
 export * from './getProductsParams';

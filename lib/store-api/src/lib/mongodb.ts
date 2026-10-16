@@ -41,6 +41,25 @@ export type OrderRecord = Document & {
   exchangeRate?: number;
   exchangeRateDate?: Date | null;
   status: "received" | "preparing" | "shipped" | "delivered";
+  paymentStatus?: "paid";
+  stripeCheckoutSessionId?: string;
+  stripePaymentIntentId?: string;
+};
+
+export type CheckoutSessionRecord = Document & {
+  userId: string;
+  status: "creating" | "pending" | "paid" | "failed" | "refunded";
+  stripeSessionId?: string;
+  orderId?: string;
+  refundId?: string;
+  createdAt: Date;
+  items: OrderLineRecord[];
+  total: number;
+  totalMinor: number;
+  displayCurrency: CurrencyCode;
+  displayTotal: number;
+  exchangeRate: number;
+  exchangeRateDate: Date | null;
 };
 
 export class MongoConfigurationError extends Error {
@@ -159,6 +178,7 @@ async function initializeDatabase(database: Db): Promise<void> {
   await Promise.all([
     ensureCollection(database, "products"),
     ensureCollection(database, "orders"),
+    ensureCollection(database, "checkout_sessions"),
   ]);
 
   const products = database.collection<ProductRecord>("products");
@@ -171,6 +191,15 @@ async function initializeDatabase(database: Db): Promise<void> {
     database
       .collection<OrderRecord>("orders")
       .createIndex({ orderNumber: 1 }, { unique: true }),
+    database
+      .collection<OrderRecord>("orders")
+      .createIndex({ stripeCheckoutSessionId: 1 }, { unique: true, sparse: true }),
+    database
+      .collection<CheckoutSessionRecord>("checkout_sessions")
+      .createIndex({ stripeSessionId: 1 }, { unique: true, sparse: true }),
+    database
+      .collection<CheckoutSessionRecord>("checkout_sessions")
+      .createIndex({ userId: 1, createdAt: -1 }),
   ]);
 
   if ((await products.countDocuments()) === 0) {
@@ -225,4 +254,12 @@ export async function getProductCollection(): Promise<
 
 export async function getOrderCollection(): Promise<Collection<OrderRecord>> {
   return (await getDatabase()).collection<OrderRecord>("orders");
+}
+
+export async function getCheckoutSessionCollection(): Promise<
+  Collection<CheckoutSessionRecord>
+> {
+  return (await getDatabase()).collection<CheckoutSessionRecord>(
+    "checkout_sessions",
+  );
 }

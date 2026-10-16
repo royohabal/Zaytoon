@@ -14,6 +14,8 @@ tags:
     description: Public product catalogue
   - name: orders
     description: Authenticated order history and order placement
+  - name: checkout
+    description: Test-mode Stripe Checkout for signed-in customers
 paths:
   /healthz:
     get:
@@ -109,6 +111,94 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "503":
           description: MongoDB Atlas is not configured or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /checkout/sessions:
+    post:
+      operationId: createCheckoutSession
+      tags: [checkout]
+      summary: Create a test-mode Stripe Checkout Session for the signed-in customer's cart
+      security:
+        - clerkSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Hosted Stripe Checkout URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSessionResponse"
+        "400":
+          description: Invalid cart or insufficient stock
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Exchange rates changed; review the updated amount before checkout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Stripe, MongoDB, or exchange-rate service is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /checkout/confirm:
+    post:
+      operationId: confirmCheckoutSession
+      tags: [checkout]
+      summary: Verify a paid Stripe Checkout Session and record the order
+      security:
+        - clerkSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutConfirmationInput"
+      responses:
+        "200":
+          description: Verified payment and order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid or unavailable Checkout Session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Payment is not complete or stock changed before order confirmation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Stripe or MongoDB is unavailable
           content:
             application/json:
               schema:
@@ -284,6 +374,21 @@ components:
           format: date-time
           description: UTC date of the exchange rates used for display; null when USD is selected
       required: [items, displayCurrency, exchangeRateDate]
+    CheckoutSessionResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+      required: [url]
+    CheckoutConfirmationInput:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          minLength: 10
+          maxLength: 255
+      required: [sessionId]
     OrderLine:
       type: object
       properties:

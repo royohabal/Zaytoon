@@ -68,6 +68,18 @@ export interface OrderInput {
   exchangeRateDate: string | null;
 }
 
+export interface CheckoutSessionResponse {
+  url: string;
+}
+
+export interface CheckoutConfirmationInput {
+  /**
+     * @minLength 10
+     * @maxLength 255
+     */
+  sessionId: string;
+}
+
 export interface OrderLine {
   productId: string;
   name: string;
