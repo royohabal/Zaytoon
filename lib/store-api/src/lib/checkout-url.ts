@@ -1,3 +1,5 @@
+import type Stripe from "stripe";
+
 type CheckoutRequestUrlInput = {
   forwardedHost?: string | string[];
   host?: string;
@@ -70,12 +72,11 @@ export function checkoutRequestOrigin(
   throw new Error("A trusted Checkout request hostname is required.");
 }
 
-export function checkoutReturnUrls(origin: string): {
-  successUrl: string;
-  cancelUrl: string;
-} {
+export function checkoutReturnUrls(
+  origin: string,
+): Pick<Stripe.Checkout.SessionCreateParams, "success_url" | "cancel_url"> {
   return {
-    successUrl: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancelUrl: `${origin}/checkout/cancel`,
+    success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/checkout/cancel`,
   };
 }
