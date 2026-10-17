@@ -1,10 +1,10 @@
 ---
-name: Stripe payment currency support
-description: Display currencies are not necessarily chargeable by the configured Stripe account.
+name: Storefront currency policy
+description: The storefront and new Checkout requests use USD only; legacy orders may contain historical display-currency snapshots.
 ---
 
-Do not assume that a currency supported by Zaytoon's price display can also be charged through its Stripe account. Do not silently change a customer's payment currency.
+The Zaytoon storefront displays prices and accepts new orders only in USD. Existing order records may retain historical display-currency fields; do not rewrite those records. For order history, use the stored base `total` (USD) instead of the older converted display total.
 
-**Why:** Test-session creation with the configured test account accepted USD, GBP, EUR, and SAR but rejected KWD with Stripe's "Invalid currency: kwd" error. The SDK left `error.name` as `Error`; its Stripe-specific type identified the invalid request.
+**Why:** The configured Stripe test account rejected KWD, and the user chose to remove currency switching rather than risk a displayed payment currency that the store cannot accept.
 
-**How to apply:** Preserve KWD price display, but let customers explicitly choose a supported payment currency and review the updated total before retrying. Recheck Stripe's actual currency capabilities when account settings or credentials change; this limitation belongs to the configured account, not necessarily every Stripe account.
+**How to apply:** Keep product, cart, order, and Checkout UI fixed to USD; reject non-USD values in server-side order and Checkout routes. Retain broad currency types only where needed to read legacy order records.

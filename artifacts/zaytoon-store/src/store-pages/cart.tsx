@@ -144,9 +144,9 @@ export default function CartPage() {
           <div className="mt-6 flex justify-between border-b border-[#d8cab8] pb-4 text-sm">
             <span>Subtotal</span>
             <AnimatedPrice
-              key={currency}
-              value={convertBasePrice(subtotal)}
-              formatValue={(amount) => formatAmount(amount, effectiveCurrency)}
+              key="USD"
+              value={subtotal}
+              formatValue={formatBasePrice}
               data-testid="text-cart-subtotal"
             />
           </div>
@@ -154,11 +154,11 @@ export default function CartPage() {
             <span>Delivery</span>
             <span className="text-xs text-[#66685f]">Not included</span>
           </div>
-           <p className="mt-4 text-xs font-light leading-5 text-[#66685f]">All prices and Stripe test payments are in USD. Stock is verified from the catalogue; delivery is not included.</p>
+          <p className="mt-4 text-xs font-light leading-5 text-[#66685f]">All prices and Stripe test payments are in USD. Stock is verified from the catalogue; delivery is not included.</p>
           <AnimatePresence>
-           {checkoutError && (
+            {checkoutError && (
             <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="mt-4 border-l-2 border-[#944931] bg-[#944931]/5 px-3 py-2 text-xs leading-5 text-[#77331d]" role="alert" data-testid="status-order-error">
-               <p>{checkoutError}</p>
+                <p>{checkoutError}</p>
             </motion.div>
           )}
           </AnimatePresence>

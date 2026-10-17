@@ -506,7 +506,7 @@ router.post("/checkout/sessions", async (req, res): Promise<void> => {
     }
     if (isUnsupportedStripeCurrencyError(error)) {
       res.status(422).json({
-        error: `Payment in ${displayCurrency} is unavailable for this store's Stripe account. Select a supported currency, such as USD, review the total, and try again.`,
+        error: "Stripe cannot accept USD payments for this store right now. Please try again later.",
       });
       return;
     }

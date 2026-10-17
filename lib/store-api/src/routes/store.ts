@@ -9,7 +9,6 @@ import {
   GetProductsQueryParams,
   GetProductsResponse,
 } from "@workspace/api-zod";
-import type { CurrencyCode } from "@workspace/api-zod";
 import {
   ObjectId,
   type ClientSession,
@@ -177,9 +176,6 @@ async function createOrderRecord(
   session: ClientSession,
   userId: string,
   lines: Array<{ productId: string; size: string; quantity: number }>,
-  displayCurrency: CurrencyCode,
-  exchangeRate: number,
-  exchangeRateDate: Date | null,
 ): Promise<StoredOrder> {
   const products = await getProductCollection();
   const orderItems: OrderRecord["items"] = [];
@@ -225,11 +221,6 @@ async function createOrderRecord(
     orderItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) *
       100,
   ) / 100;
-  const displayDecimals = displayCurrency === "KWD" ? 3 : 2;
-  const displayTotal =
-    Math.round(
-      total * exchangeRate * 10 ** displayDecimals,
-    ) / 10 ** displayDecimals;
   const createdAt = new Date();
   const orderNumber = `ZY-${createdAt
     .toISOString()
@@ -243,10 +234,10 @@ async function createOrderRecord(
     items: orderItems,
     total,
     baseCurrency: "USD",
-    displayCurrency,
-    displayTotal,
-    exchangeRate,
-    exchangeRateDate,
+    displayCurrency: "USD",
+    displayTotal: total,
+    exchangeRate: 1,
+    exchangeRateDate: null,
     status: "received",
   };
   const inserted = await orderCollection.insertOne(document, { session });
@@ -285,9 +276,6 @@ router.post("/orders", async (req, res): Promise<void> => {
     });
     return;
   }
-  const exchangeRate = 1;
-  const exchangeRateDate: Date | null = null;
-
   try {
     const client = await getMongoClient();
     const session = client.startSession();
@@ -299,9 +287,6 @@ router.post("/orders", async (req, res): Promise<void> => {
           session,
           userId,
           parsed.data.items,
-          displayCurrency,
-          exchangeRate,
-          exchangeRateDate,
         );
       });
     } finally {
