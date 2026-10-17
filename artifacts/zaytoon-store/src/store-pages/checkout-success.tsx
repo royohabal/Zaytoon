@@ -107,7 +107,7 @@ export default function CheckoutSuccessPage() {
               Your order number is <span className="font-medium text-[#1c1c1a]">{order.orderNumber}</span>.
             </p>
             <p className="mt-3 text-sm text-[#66685f]" data-testid="text-checkout-confirmation-total">
-              Order total: {formatCurrencyAmount(order.displayTotal, order.displayCurrency)}
+              Order total: {formatCurrencyAmount(order.total)}
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Link

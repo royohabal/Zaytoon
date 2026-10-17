@@ -54,15 +54,22 @@ export interface OrderLineInput {
   quantity: number;
 }
 
+export type OrderInputDisplayCurrency = typeof OrderInputDisplayCurrency[keyof typeof OrderInputDisplayCurrency];
+
+
+export const OrderInputDisplayCurrency = {
+  USD: 'USD',
+} as const;
+
 export interface OrderInput {
   /**
      * @minItems 1
      * @maxItems 20
      */
   items: OrderLineInput[];
-  displayCurrency: CurrencyCode;
+  displayCurrency: OrderInputDisplayCurrency;
   /**
-     * UTC date of the exchange rates used for display; null when USD is selected
+     * Null because the storefront uses USD only
      * @nullable
      */
   exchangeRateDate: string | null;

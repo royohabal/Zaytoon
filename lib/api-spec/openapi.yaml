@@ -147,20 +147,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "409":
-          description: Exchange rates changed; review the updated amount before checkout
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
         "422":
-          description: Stripe cannot accept the selected currency; choose another currency and review the total
+          description: Checkout is available in USD only
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "503":
-          description: Stripe, MongoDB, or exchange-rate service is unavailable
+          description: Stripe or MongoDB is unavailable
           content:
             application/json:
               schema:
@@ -258,12 +252,6 @@ paths:
                 $ref: "#/components/schemas/Order"
         "400":
           description: Invalid order or insufficient stock
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "409":
-          description: Exchange rates changed; review the updated amount before ordering
           content:
             application/json:
               schema:
@@ -374,11 +362,12 @@ components:
           items:
             $ref: "#/components/schemas/OrderLineInput"
         displayCurrency:
-          $ref: "#/components/schemas/CurrencyCode"
+          type: string
+          enum: [USD]
         exchangeRateDate:
           type: ["string", "null"]
           format: date-time
-          description: UTC date of the exchange rates used for display; null when USD is selected
+          description: Null because the storefront uses USD only
       required: [items, displayCurrency, exchangeRateDate]
     CheckoutSessionResponse:
       type: object

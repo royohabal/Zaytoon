@@ -118,8 +118,8 @@ export const CreateCheckoutSessionBody = zod.object({
   "size": zod.string(),
   "quantity": zod.number().int().min(1).max(createCheckoutSessionBodyItemsItemQuantityMax)
 })).min(1).max(createCheckoutSessionBodyItemsMax),
-  "displayCurrency": zod.enum(['KWD', 'USD', 'GBP', 'EUR', 'SAR']),
-  "exchangeRateDate": zod.coerce.date().nullable().describe('UTC date of the exchange rates used for display; null when USD is selected')
+  "displayCurrency": zod.enum(['USD']),
+  "exchangeRateDate": zod.coerce.date().nullable().describe('Null because the storefront uses USD only')
 })
 
 export const CreateCheckoutSessionResponse = zod.object({
@@ -205,8 +205,8 @@ export const CreateOrderBody = zod.object({
   "size": zod.string(),
   "quantity": zod.number().int().min(1).max(createOrderBodyItemsItemQuantityMax)
 })).min(1).max(createOrderBodyItemsMax),
-  "displayCurrency": zod.enum(['KWD', 'USD', 'GBP', 'EUR', 'SAR']),
-  "exchangeRateDate": zod.coerce.date().nullable().describe('UTC date of the exchange rates used for display; null when USD is selected')
+  "displayCurrency": zod.enum(['USD']),
+  "exchangeRateDate": zod.coerce.date().nullable().describe('Null because the storefront uses USD only')
 })
 
 export const CreateOrderResponse = zod.object({

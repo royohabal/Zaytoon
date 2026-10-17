@@ -57,7 +57,7 @@ export default function OrdersPage() {
                 </div>
               </div>
               <p className="atelier-label sm:text-right" data-testid={`text-order-total-${order.id}`}>
-                {formatCurrencyAmount(order.displayTotal, order.displayCurrency)}
+                 {formatCurrencyAmount(order.total)}
               </p>
             </article>
             </Reveal>

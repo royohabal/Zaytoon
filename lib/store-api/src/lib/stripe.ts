@@ -1,4 +1,11 @@
 import Stripe from "stripe";
+import type { CurrencyCode } from "@workspace/api-zod";
+
+// Checkout is USD-only. Keep old currency values readable for historical
+// records, but reject them for new test payments.
+export function isSupportedStripeTestCurrency(currency: CurrencyCode): boolean {
+  return currency === "USD";
+}
 
 export class StripeConfigurationError extends Error {
   constructor(message: string) {

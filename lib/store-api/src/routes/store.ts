@@ -27,8 +27,6 @@ import {
   type StoredOrder,
   type StoredProduct,
 } from "../lib/mongodb";
-import { ExchangeRatesUnavailableError, getUsdExchangeRate } from "../lib/exchange-rates";
-
 const router: IRouter = Router();
 
 function productResponse(product: StoredProduct) {
@@ -281,37 +279,14 @@ router.post("/orders", async (req, res): Promise<void> => {
   }
 
   const displayCurrency = parsed.data.displayCurrency;
-  let exchangeRate = 1;
-  let exchangeRateDate: Date | null = null;
   if (displayCurrency !== "USD") {
-    let quote: Awaited<ReturnType<typeof getUsdExchangeRate>>;
-    try {
-      quote = await getUsdExchangeRate(displayCurrency);
-    } catch (error) {
-      if (error instanceof ExchangeRatesUnavailableError) {
-        req.log.warn({ kind: "exchange-rates" }, "Currency rates unavailable for order");
-        res.status(503).json({
-          error: "Currency conversion is temporarily unavailable. Select USD or try again later.",
-        });
-        return;
-      }
-      throw error;
-    }
-
-    const requestedRateDate = parsed.data.exchangeRateDate;
-    if (
-      !requestedRateDate ||
-      !quote.updatedAt ||
-      requestedRateDate.getTime() !== quote.updatedAt.getTime()
-    ) {
-      res.status(409).json({
-        error: "Exchange rates have changed. Review the updated prices and try again.",
-      });
-      return;
-    }
-    exchangeRate = quote.rate;
-    exchangeRateDate = quote.updatedAt;
+    res.status(422).json({
+      error: "Orders are available in USD only.",
+    });
+    return;
   }
+  const exchangeRate = 1;
+  const exchangeRateDate: Date | null = null;
 
   try {
     const client = await getMongoClient();

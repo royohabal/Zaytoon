@@ -6,7 +6,7 @@ import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { CartProvider } from '@/lib/cart';
-import { CurrencyProvider, CurrencyStatusBanner } from '@/lib/currency';
+import { CurrencyProvider } from '@/lib/currency';
 import { queryClient } from '@/lib/queryClient';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Footer, Header } from '@/components/store-shell';
@@ -114,7 +114,6 @@ function StoreLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-[100dvh]">
       <Header />
-      <CurrencyStatusBanner />
       <PageFade>{children}</PageFade>
       <Footer />
     </div>

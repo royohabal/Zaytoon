@@ -20,11 +20,8 @@ import {
   type StoredOrder,
 } from "../lib/mongodb";
 import {
-  ExchangeRatesUnavailableError,
-  getUsdExchangeRate,
-} from "../lib/exchange-rates";
-import {
   getTestStripeClient,
+  isSupportedStripeTestCurrency,
   isUnsupportedStripeCurrencyError,
   StripeConfigurationError,
 } from "../lib/stripe";
@@ -323,35 +320,16 @@ router.post("/checkout/sessions", async (req, res): Promise<void> => {
   }
 
   const { displayCurrency } = parsed.data;
-  let exchangeRate = 1;
-  let exchangeRateDate: Date | null = null;
-  if (displayCurrency !== "USD") {
-    try {
-      const quote = await getUsdExchangeRate(displayCurrency);
-      const requestedDate = parsed.data.exchangeRateDate;
-      if (
-        !requestedDate ||
-        !quote.updatedAt ||
-        requestedDate.getTime() !== quote.updatedAt.getTime()
-      ) {
-        res.status(409).json({
-          error: "Exchange rates have changed. Review the updated prices and try again.",
-        });
-        return;
-      }
-      exchangeRate = quote.rate;
-      exchangeRateDate = quote.updatedAt;
-    } catch (error) {
-      if (error instanceof ExchangeRatesUnavailableError) {
-        req.log.warn({ kind: "exchange-rates" }, "Rates unavailable for Stripe Checkout");
-        res.status(503).json({
-          error: "Currency conversion is temporarily unavailable. Select USD or try again later.",
-        });
-        return;
-      }
-      throw error;
-    }
+  if (!isSupportedStripeTestCurrency(displayCurrency)) {
+    res.status(422).json({
+      error:
+        "Checkout is available in USD only. Select USD and review the total before trying again.",
+    });
+    return;
   }
+
+  const exchangeRate = 1;
+  const exchangeRateDate: Date | null = null;
 
   const stripe = (() => {
     try {

@@ -15,6 +15,7 @@ export * from './getProductsSort';
 export * from './healthStatus';
 export * from './order';
 export * from './orderInput';
+export * from './orderInputDisplayCurrency';
 export * from './orderLine';
 export * from './orderLineInput';
 export * from './orderStatus';
